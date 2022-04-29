@@ -11,7 +11,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://192.168.42.242:3000",
-      "https://zenbook.netlify.app",
+      "https://zengram.netlify.app",
       process.env.CLIENT_URL,
     ],
     methods: ["GET", "POST", "DELETE", "PUT"],
@@ -34,5 +34,5 @@ app.get("/welcome", auth, (req, res) => {
   res.send("Welcome ", req.user.id);
 });
 app.get("/", (_, res) => {
-  res.send("Welcome to zenbook");
+  res.send("Welcome to ZenGram");
 });
