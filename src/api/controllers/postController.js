@@ -2,13 +2,12 @@ const { Post, User } = require("../models");
 
 const addPost = async (req, res) => {
   try {
-    const { content, mediaURLs, postType } = req.body;
+    const { content, mediaURLs } = req.body;
     const post = await Post.create({
       content,
       mediaURLs,
-      postType,
-      userId: req.user.id,
-    });
+      postedBy: req.user.id,
+    }).populate("postedBy", "_id name profilePictureURL");
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -17,13 +16,17 @@ const addPost = async (req, res) => {
 const updatePost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const { content, mediaURLs, postType } = req.body;
+    const { content, mediaURLs } = req.body;
     const isPostExists = await Post.findOne({
       _id: postId,
-      userId: req.user.id,
+      postedBy: req.user.id,
     });
     if (isPostExists) {
-      await Post.updateOne({ _id: postId }, { content, mediaURLs, postType });
+      await Post.updateOne(
+        { _id: postId },
+        { content, mediaURLs },
+        { new: true }
+      ).populate("postedBy", "_id name profilePictureURL");
       res.json("Post updated successfully");
     } else
       res
@@ -41,7 +44,10 @@ const deletePost = async (req, res) => {
       postId: req.user.id,
     });
     if (isPostExists) {
-      await Post.deleteOne({ _id: postId });
+      await Post.deleteOne({ _id: postId }, { new: true }).populate(
+        "postedBy",
+        "_id name profilePictureURL"
+      );
       res.json("Post deleted successfully");
     } else
       res
@@ -54,7 +60,10 @@ const deletePost = async (req, res) => {
 const fetchPost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).populate(
+      "postedBy",
+      "_id name profilePictureURL"
+    );
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -63,17 +72,23 @@ const fetchPost = async (req, res) => {
 const fetchAllUserPost = async (req, res) => {
   try {
     let posts;
-    let { userId, search } = req.query;
-    if (!userId) {
-      userId = req.user.id;
+    let { postedBy, search } = req.query;
+    if (!postedBy) {
+      postedBy = req.user.id;
     }
     if (search)
       posts = await Post.find(
-        { userId },
+        { postedBy },
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
-      ).sort({ score: { $meta: "textScore" } });
-    else posts = await Post.find({ userId });
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .populate("postedBy", "_id name profilePictureURL");
+    else
+      posts = await Post.find({ postedBy }).populate(
+        "postedBy",
+        "_id name profilePictureURL"
+      );
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -81,38 +96,26 @@ const fetchAllUserPost = async (req, res) => {
 };
 const fetchAllUserDraftPost = async (req, res) => {
   try {
-    let posts;
-    const { search } = req.query;
-    const userId = req.user.id;
-
-    if (search)
-      posts = await Post.find(
-        { userId, postType: "draft" },
-
-        { $text: { $search: search } },
-        { score: { $meta: "textScore" } }
-      ).sort({ score: { $meta: "textScore" } });
-    else posts = await Post.find({ userId, postType: "draft" });
+    const postedBy = req.user.id;
+    const posts = await User.findById(postedBy).populate(
+      "draftPosts",
+      "postedBy",
+      "_id name profilePictureURL"
+    );
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
+const addPostToDraft = () => {};
 const fetchAllUserArchivedPost = async (req, res) => {
   try {
-    let posts;
-    const { search } = req.query;
-
-    const userId = req.user.id;
-
-    if (search)
-      posts = await Post.find(
-        { userId, postType: "archived" },
-
-        { $text: { $search: search } },
-        { score: { $meta: "textScore" } }
-      ).sort({ score: { $meta: "textScore" } });
-    else posts = await Post.find({ userId, postType: "archived" });
+    const postedBy = req.user.id;
+    const posts = await User.findById(postedBy).populate(
+      "archivedPosts",
+      "postedBy",
+      "_id name profilePictureURL"
+    );
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -120,18 +123,12 @@ const fetchAllUserArchivedPost = async (req, res) => {
 };
 const fetchAllUserBookmarkedPost = async (req, res) => {
   try {
-    let posts;
-    const { search } = req.query;
-    let userId = req.user.id;
-
-    if (search)
-      posts = await Post.find(
-        { userId, postType: "bookmarked" },
-
-        { $text: { $search: search } },
-        { score: { $meta: "textScore" } }
-      ).sort({ score: { $meta: "textScore" } });
-    else posts = await Post.find({ userId, postType: "bookmarked" });
+    const postedBy = req.user.id;
+    const posts = await User.findById(postedBy).populate(
+      "bookmarkedPosts",
+      "postedBy",
+      "_id name profilePictureURL"
+    );
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -146,36 +143,42 @@ const fetchAllPost = async (req, res) => {
         {},
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
-      ).sort({ score: { $meta: "textScore" } });
-    else posts = await Post.find();
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .populate("postedBy", "_id name profilePictureURL");
+    else
+      posts = await Post.find().populate(
+        "postedBy",
+        "_id name profilePictureURL"
+      );
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
 
-const fetchAllPostByUserId = async (req, res) => {
+const fetchAllPostBypostedBy = async (req, res) => {
   try {
     const { search } = req.query;
-    const { userId } = req.params;
+    const { postedBy } = req.params;
 
-    const userInfo = await User.findOne({ _id: userId });
+    const userInfo = await User.findOne({ _id: postedBy });
     let posts;
     if (search)
       posts = await Post.find(
         {
-          postId: { $in: [userId, userInfo.following] },
-          postType: "published",
+          postId: { $in: [postedBy, userInfo.following] },
         },
 
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
-      ).sort({ score: { $meta: "textScore" } });
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .populate("postedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
-        userId: { $in: [userId, userInfo.following] },
-        postType: "published",
-      });
+        postedBy: { $in: [postedBy, userInfo.following] },
+      }).populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -184,26 +187,28 @@ const fetchAllPostByUserId = async (req, res) => {
 const fetchAllTrendingUserPost = async (req, res) => {
   try {
     const { search } = req.query;
-    const userId = req.user.id;
+    const postedBy = req.user.id;
 
-    const userInfo = await User.findOne({ _id: userId });
+    const userInfo = await User.findOne({ _id: postedBy });
     let posts;
     if (search)
       posts = await Post.find(
         {
-          userId: { $in: [userId, userInfo.following] },
-          postType: "published",
+          postedBy: { $in: [postedBy, userInfo.following] },
         },
         {
           $text: { $search: search },
         },
         { score: { $meta: "textScore" } }
-      ).sort({ likes: -1, score: { $meta: "textScore" } });
+      )
+        .sort({ likes: -1, score: { $meta: "textScore" } })
+        .populate("postedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
-        userId: { $in: [userId, userInfo.following] },
-        postType: "published",
-      }).sort({ likes: -1 });
+        postedBy: { $in: [postedBy, userInfo.following] },
+      })
+        .sort({ likes: -1 })
+        .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -213,8 +218,8 @@ const sortAllUserPostByDate = async (req, res) => {
   try {
     const { search } = req.query;
     let { order } = req.query;
-    const userId = req.user.id;
-    const userInfo = await User.findOne({ _id: userId });
+    const postedBy = req.user.id;
+    const userInfo = await User.findOne({ _id: postedBy });
 
     if (order === "asc") {
       order = 1;
@@ -225,19 +230,21 @@ const sortAllUserPostByDate = async (req, res) => {
     if (search)
       posts = await Post.find(
         {
-          userId: { $in: [userId, userInfo.following] },
-          postType: "published",
+          postedBy: { $in: [postedBy, userInfo.following] },
         },
         {
           $text: { $search: search },
         },
         { score: { $meta: "textScore" } }
-      ).sort({ updatedAt: order, score: { $meta: "textScore" } });
+      )
+        .sort({ updatedAt: order, score: { $meta: "textScore" } })
+        .populate("postedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
-        userId: { $in: [userId, userInfo.following] },
-        postType: "published",
-      }).sort({ updatedAt: order });
+        postedBy: { $in: [postedBy, userInfo.following] },
+      })
+        .sort({ updatedAt: order })
+        .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -250,18 +257,18 @@ const fetchAllTrendingPost = async (req, res) => {
     let posts;
     if (search)
       posts = await Post.find(
-        {
-          postType: "published",
-        },
+        {},
         {
           $text: { $search: search },
         },
         { score: { $meta: "textScore" } }
-      ).sort({ likes: -1, score: { $meta: "textScore" } });
+      )
+        .sort({ likes: -1, score: { $meta: "textScore" } })
+        .populate("postedBy", "_id name profilePictureURL");
     else
-      posts = await Post.find({
-        postType: "published",
-      }).sort({ likes: -1 });
+      posts = await Post.find({})
+        .sort({ likes: -1 })
+        .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -279,18 +286,18 @@ const sortAllPostByDate = async (req, res) => {
     let posts;
     if (search)
       posts = await Post.find(
-        {
-          postType: "published",
-        },
+        {},
         {
           $text: { $search: search },
         },
         { score: { $meta: "textScore" } }
-      ).sort({ updatedAt: order, score: { $meta: "textScore" } });
+      )
+        .sort({ updatedAt: order, score: { $meta: "textScore" } })
+        .populate("postedBy", "_id name profilePictureURL");
     else
-      posts = await Post.find({
-        postType: "published",
-      }).sort({ updatedAt: order });
+      posts = await Post.find({})
+        .sort({ updatedAt: order })
+        .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -301,8 +308,7 @@ const fetchAllPostByHashTags = async (req, res) => {
   try {
     const posts = await Post.find({
       hashTags: { $in: hashtag },
-      postType: "published",
-    });
+    }).populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -315,7 +321,7 @@ module.exports = {
   deletePost,
   fetchPost,
   fetchAllUserPost,
-  fetchAllPostByUserId,
+  fetchAllPostBypostedBy,
   fetchAllPost,
   sortAllPostByDate,
   fetchAllUserDraftPost,

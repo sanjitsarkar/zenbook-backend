@@ -6,18 +6,7 @@ const loginController = async (req, res) => {
 
     if (user) {
       res.json({
-        _id: user._id,
-
-        profilePictureURL: user.profilePictureURL,
-        email: user.email,
-        name: user.name,
-        followings: user.followings,
-        followers: user.followers,
-        bio: user.bio,
-        portfolioUrl: user.portfolioUrl,
-        updatedAt: user.updatedAt,
-        createdAt: user.createdAt,
-        token: user.token,
+        user,
       });
     }
   } catch (err) {
@@ -29,17 +18,7 @@ const signupController = async (req, res) => {
     const { name, email, password } = req.body;
     const user = await User.signup(name, email, password);
     res.json({
-      _id: user._id,
-      email: user.email,
-      name: user.name,
-      profilePictureURL: user.profilePictureURL,
-      updatedAt: user.updatedAt,
-      createdAt: user.createdAt,
-      followings: user.followings,
-      followers: user.followers,
-      bio: user.bio,
-      portfolioUrl: user.portfolioUrl,
-      token: user.token,
+      user,
     });
   } catch (err) {
     res.status(401).json({ errors: [err.message.split(",")] });
@@ -47,18 +26,9 @@ const signupController = async (req, res) => {
 };
 const getUserInfo = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.user.id });
+    const user = await User.findOne({ _id: req.user.id }).select("-password");
     res.json({
-      _id: user._id,
-      email: user.email,
-      name: user.name,
-      profilePictureURL: user.profilePictureURL,
-      updatedAt: user.updatedAt,
-      createdAt: user.createdAt,
-      followings: user.followings,
-      followers: user.followers,
-      bio: user.bio,
-      portfolioUrl: user.portfolioUrl,
+      user,
     });
   } catch (err) {
     res.status(401).json({ errors: [err.message.split(",")] });
