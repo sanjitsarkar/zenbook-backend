@@ -6,6 +6,7 @@ const commentSchema = new Schema(
     },
     commentedBy: {
       type: [Schema.Types.ObjectId],
+      ref: "User",
     },
   },
   { timestamps: true }

@@ -6,6 +6,7 @@ const replySchema = new Schema(
     },
     repliedBy: {
       type: [Schema.Types.ObjectId],
+      ref: "User",
     },
   },
   { timestamps: true }
