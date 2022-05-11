@@ -107,7 +107,34 @@ const fetchAllUserDraftPost = async (req, res) => {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
-const addPostToDraft = () => {};
+const addPostToDraft = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $push: { draftPosts: { postId } } },
+      { new: true }
+    );
+
+    res.json({ user });
+  } catch (err) {
+    res.status(404).json({ errors: [err.message.split(",")] });
+  }
+};
+const removePostFromDraft = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $pull: { draftPosts: { postId } } },
+      { new: true }
+    );
+
+    res.json({ user });
+  } catch (err) {
+    res.status(404).json({ errors: [err.message.split(",")] });
+  }
+};
 const fetchAllUserArchivedPost = async (req, res) => {
   try {
     const postedBy = req.user.id;
@@ -121,6 +148,34 @@ const fetchAllUserArchivedPost = async (req, res) => {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
+const addPostToArchived = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $push: { draftPosts: { postId } } },
+      { new: true }
+    );
+
+    res.json({ user });
+  } catch (err) {
+    res.status(404).json({ errors: [err.message.split(",")] });
+  }
+};
+const removePostFromArchived = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $pull: { draftPosts: { postId } } },
+      { new: true }
+    );
+
+    res.json({ user });
+  } catch (err) {
+    res.status(404).json({ errors: [err.message.split(",")] });
+  }
+};
 const fetchAllUserBookmarkedPost = async (req, res) => {
   try {
     const postedBy = req.user.id;
@@ -130,6 +185,34 @@ const fetchAllUserBookmarkedPost = async (req, res) => {
       "_id name profilePictureURL"
     );
     res.json({ posts });
+  } catch (err) {
+    res.status(404).json({ errors: [err.message.split(",")] });
+  }
+};
+const addPostToBookmarked = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $push: { bookmarkedPosts: { postId } } },
+      { new: true }
+    );
+
+    res.json({ user });
+  } catch (err) {
+    res.status(404).json({ errors: [err.message.split(",")] });
+  }
+};
+const removePostFromBookmarked = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $pull: { bookmarkedPosts: { postId } } },
+      { new: true }
+    );
+
+    res.json({ user });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
@@ -331,4 +414,10 @@ module.exports = {
   fetchAllTrendingPost,
   sortAllUserPostByDate,
   fetchAllTrendingUserPost,
+  addPostToArchived,
+  addPostToDraft,
+  addPostToBookmarked,
+  removePostFromArchived,
+  removePostFromBookmarked,
+  removePostFromDraft,
 };

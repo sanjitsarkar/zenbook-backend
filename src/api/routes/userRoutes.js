@@ -6,7 +6,12 @@ const {
   fetchAllUserArchivedPost,
   fetchAllUserBookmarkedPost,
   fetchAllUserDraftPost,
-
+  addPostToArchived,
+  addPostToDraft,
+  addPostToBookmarked,
+  removePostFromArchived,
+  removePostFromBookmarked,
+  removePostFromDraft,
   sortAllUserPostByDate,
   fetchAllTrendingUserPost,
 } = require("../controllers/postController");
@@ -19,6 +24,12 @@ router.get("/", auth, getUserInfo);
 router.get("/posts/archived", auth, fetchAllUserArchivedPost);
 router.get("/posts/bookmarked", auth, fetchAllUserBookmarkedPost);
 router.get("/posts/draft", auth, fetchAllUserDraftPost);
+router.put("/posts/archived/:postId", auth, addPostToArchived);
+router.put("/posts/bookmarked/:postId", auth, addPostToBookmarked);
+router.put("/posts/draft/:postId", auth, addPostToDraft);
+router.delete("/posts/archived/:postId", auth, removePostFromArchived);
+router.delete("/posts/bookmarked/:postId", auth, removePostFromBookmarked);
+router.delete("/posts/draft/:postId", auth, removePostFromDraft);
 router.get("/:id/posts", auth, fetchAllPostByUserId);
 router.get("/posts/sortBy=date", auth, sortAllUserPostByDate);
 router.get("/posts/trending", auth, fetchAllTrendingUserPost);
