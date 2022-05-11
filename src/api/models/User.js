@@ -53,6 +53,12 @@ const userSchema = new Schema(
       type: [Schema.Types.ObjectId],
       ref: "Post",
     },
+    stories: {
+      type: [Schema.Types.ObjectId],
+    },
+    hashTagsFollowed: {
+      type: [String],
+    },
     followings: {
       type: [Schema.Types.ObjectId],
       ref: "User",
@@ -73,7 +79,7 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.statics.login = async function (email, password) {
-  const user = await this.findOne({ email }).select("-password");
+  const user = await this.findOne({ email });
   if (user) {
     const isValid = await bcrypt.compare(password, user.password);
     if (isValid) {
@@ -85,6 +91,8 @@ userSchema.statics.login = async function (email, password) {
         }
       );
       user.token = token;
+      user.password = undefined;
+
       return user;
     } else {
       throw Error("Wrong password");
@@ -103,7 +111,8 @@ userSchema.statics.signup = async function (name, email, password) {
     name,
     email: email.toLowerCase(),
     password,
-  }).select("-password");
+  });
+  user.password = undefined;
 
   const token = jwt.sign(
     { id: user._id, email: email.toLowerCase() },
