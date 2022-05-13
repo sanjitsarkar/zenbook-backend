@@ -7,7 +7,7 @@ const addPost = async (req, res) => {
       content,
       mediaURLs,
       postedBy: req.user.id,
-    }).populate("postedBy", "_id name profilePictureURL");
+    });
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -44,11 +44,8 @@ const deletePost = async (req, res) => {
       postId: req.user.id,
     });
     if (isPostExists) {
-      await Post.deleteOne({ _id: postId }, { new: true }).populate(
-        "postedBy",
-        "_id name profilePictureURL"
-      );
-      res.json("Post deleted successfully");
+      await Post.deleteOne({ _id: postId }, { new: true });
+      res.json({ post: { _id: postId } });
     } else
       res
         .status(404)
@@ -96,9 +93,15 @@ const fetchAllUserPost = async (req, res) => {
 const fetchAllUserDraftPost = async (req, res) => {
   try {
     const postedBy = req.user.id;
-    const posts = await User.findById(postedBy)
-      .sort({ updatedAt: -1 })
-      .populate("draftPosts", "postedBy", "_id name profilePictureURL");
+    const user = await User.findById(postedBy);
+    const posts = await Promise.all(
+      user.draftPosts.map(async (post) => {
+        return await Post.findById(post).populate(
+          "postedBy",
+          "_id name profilePictureURL"
+        );
+      })
+    );
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -107,13 +110,16 @@ const fetchAllUserDraftPost = async (req, res) => {
 const addPostToDraft = async (req, res) => {
   try {
     const { postId } = req.params;
-    const user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       req.user.id,
-      { $push: { draftPosts: { postId } } },
+      { $push: { draftPosts: postId } },
       { new: true }
     );
-
-    res.json({ user });
+    const post = await Post.findById(postId).populate(
+      "postedBy",
+      "_id name profilePictureURL"
+    );
+    res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
@@ -121,13 +127,13 @@ const addPostToDraft = async (req, res) => {
 const removePostFromDraft = async (req, res) => {
   try {
     const { postId } = req.params;
-    const user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       req.user.id,
-      { $pull: { draftPosts: { postId } } },
+      { $pull: { draftPosts: postId } },
       { new: true }
     );
 
-    res.json({ user });
+    res.json({ postId });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
@@ -135,9 +141,15 @@ const removePostFromDraft = async (req, res) => {
 const fetchAllUserArchivedPost = async (req, res) => {
   try {
     const postedBy = req.user.id;
-    const posts = await User.findById(postedBy)
-      .sort({ updatedAt: -1 })
-      .populate("archivedPosts", "postedBy", "_id name profilePictureURL");
+    const user = await User.findById(postedBy);
+    const posts = await Promise.all(
+      user.archivedPosts.map(async (post) => {
+        return await Post.findById(post).populate(
+          "postedBy",
+          "_id name profilePictureURL"
+        );
+      })
+    );
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -146,13 +158,16 @@ const fetchAllUserArchivedPost = async (req, res) => {
 const addPostToArchived = async (req, res) => {
   try {
     const { postId } = req.params;
-    const user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       req.user.id,
-      { $push: { draftPosts: { postId } } },
+      { $push: { archivedPosts: postId } },
       { new: true }
     );
-
-    res.json({ user });
+    const post = await Post.findById(postId).populate(
+      "postedBy",
+      "_id name profilePictureURL"
+    );
+    res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
@@ -160,13 +175,13 @@ const addPostToArchived = async (req, res) => {
 const removePostFromArchived = async (req, res) => {
   try {
     const { postId } = req.params;
-    const user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       req.user.id,
-      { $pull: { draftPosts: { postId } } },
+      { $pull: { archivedPosts: postId } },
       { new: true }
     );
 
-    res.json({ user });
+    res.json({ postId });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
@@ -174,9 +189,15 @@ const removePostFromArchived = async (req, res) => {
 const fetchAllUserBookmarkedPost = async (req, res) => {
   try {
     const postedBy = req.user.id;
-    const posts = await User.findById(postedBy)
-      .sort({ updatedAt: -1 })
-      .populate("bookmarkedPosts", "postedBy", "_id name profilePictureURL");
+    const user = await User.findById(postedBy);
+    const posts = await Promise.all(
+      user.bookmarkedPosts.map(async (post) => {
+        return await Post.findById(post).populate(
+          "postedBy",
+          "_id name profilePictureURL"
+        );
+      })
+    );
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -185,13 +206,16 @@ const fetchAllUserBookmarkedPost = async (req, res) => {
 const addPostToBookmarked = async (req, res) => {
   try {
     const { postId } = req.params;
-    const user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       req.user.id,
-      { $push: { bookmarkedPosts: { postId } } },
+      { $push: { bookmarkedPosts: postId } },
       { new: true }
     );
-
-    res.json({ user });
+    const post = await Post.findById(postId).populate(
+      "postedBy",
+      "_id name profilePictureURL"
+    );
+    res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
@@ -201,11 +225,11 @@ const removePostFromBookmarked = async (req, res) => {
     const { postId } = req.params;
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { $pull: { bookmarkedPosts: { postId } } },
+      { $pull: { bookmarkedPosts: postId } },
       { new: true }
     );
 
-    res.json({ user });
+    res.json({ postId });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }

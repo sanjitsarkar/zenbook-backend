@@ -5,7 +5,7 @@ const addComment = async (req, res) => {
     const { commentedBy, id: postId } = req.body;
     const post = await Post.findOneAndUpdate(
       { _id: postId },
-      { $push: { comments: { commentedBy } } },
+      { $push: { comments:  commentedBy  } },
       { new: true }
     ).populate("comments", "commentedBy", "_id name profilePictureURL");
     res.json({ post });
@@ -18,7 +18,7 @@ const removeComment = async (req, res) => {
     const { commentedBy, id: postId } = req.body;
     await Post.findOneAndUpdate(
       { _id: postId },
-      { $pull: { comments: { commentedBy } } },
+      { $pull: { comments:  commentedBy  } },
       { new: true }
     ).populate("comments", "commentedBy", "_id name profilePictureURL");
     res.json("Comment deleted successfully");

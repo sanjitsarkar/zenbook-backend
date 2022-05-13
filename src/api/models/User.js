@@ -43,29 +43,37 @@ const userSchema = new Schema(
     },
     draftPosts: {
       type: [Schema.Types.ObjectId],
-      ref: "Post",
+      unique: [true, "Draft post already exist."],
+      ref: "post",
     },
     archivedPosts: {
       type: [Schema.Types.ObjectId],
-      ref: "Post",
+      unique: [true, "Archived post already exist."],
+      ref: "post",
     },
     bookmarkedPosts: {
       type: [Schema.Types.ObjectId],
-      ref: "Post",
+      unique: [true, "Bookmarked post already exist."],
+      ref: "post",
     },
     stories: {
       type: [Schema.Types.ObjectId],
+      unique: [true, "Story already exist."],
     },
     hashTagsFollowed: {
       type: [String],
+      default: [],
+      unique: [true, "Hashtag already exist."],
     },
     followings: {
       type: [Schema.Types.ObjectId],
-      ref: "User",
+      ref: "user",
+      unique: [true, "Following already exist."],
     },
     followers: {
       type: [Schema.Types.ObjectId],
-      ref: "User",
+      ref: "user",
+      unique: [true, "Follower already exist."],
     },
   },
   {
@@ -85,10 +93,7 @@ userSchema.statics.login = async function (email, password) {
     if (isValid) {
       const token = jwt.sign(
         { id: user._id, email },
-        process.env.JWT_TOKEN_KEY,
-        {
-          expiresIn: "2h",
-        }
+        process.env.JWT_TOKEN_KEY
       );
       user.token = token;
       user.password = undefined;
@@ -102,9 +107,9 @@ userSchema.statics.login = async function (email, password) {
   }
 };
 userSchema.statics.signup = async function (name, email, password) {
-  const isUserExist = await this.findOne({ email });
-  if (isUserExist) {
-    throw Error("User already exist. Please login");
+  const isuserExist = await this.findOne({ email });
+  if (isuserExist) {
+    throw Error("user already exist. Please login");
   }
 
   const user = await this.create({
@@ -116,13 +121,10 @@ userSchema.statics.signup = async function (name, email, password) {
 
   const token = jwt.sign(
     { id: user._id, email: email.toLowerCase() },
-    process.env.JWT_TOKEN_KEY,
-    {
-      expiresIn: "2h",
-    }
+    process.env.JWT_TOKEN_KEY
   );
   user.token = token;
   return user;
 };
 
-module.exports = User = model("user", userSchema);
+module.exports = user = model("user", userSchema);

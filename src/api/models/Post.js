@@ -6,26 +6,38 @@ const postSchema = new Schema(
     content: {
       type: String,
       index: true,
-      required: [true, "Post content can't be empty."],
+      default: "",
     },
     likes: {
       type: [likeSchema.schema],
+      default: [],
+      unique: [true, "Like already exist."],
     },
     hashTags: {
       type: [String],
       default: [],
+      unique: [true, "Hash tag already exist."],
     },
     comments: {
       type: [commentSchema.schema],
+      default: [],
+      unique: [true, "Comment already exist."],
     },
     mediaURLs: {
       type: [String],
       required: [true, "MediaURLs can't be empty."],
+      unique: [true, "MediaURLs already exist."],
     },
-    userId: {
+    postedBy: {
       type: Schema.Types.ObjectId,
-      required: [true, "User Id can't be empty."],
-      ref: "User",
+      required: [true, "postedBy can't be empty."],
+      ref: "user",
+    },
+    shares: {
+      type: [Schema.Types.ObjectId],
+      default: [],
+      ref: "user",
+      unique: [true, "Share already exist."],
     },
   },
   { timestamps: true }

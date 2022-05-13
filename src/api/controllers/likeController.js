@@ -7,11 +7,11 @@ const likePost = async (req, res) => {
     if (likedBy !== userId) {
       await Post.findOneAndUpdate(
         { _id: postId },
-        { $pull: { likes: { likedBy } } }
+        { $pull: { likes:  likedBy  } }
       );
       await Post.findOneAndUpdate(
         { _id: postId },
-        { $push: { likes: { likedBy } } },
+        { $push: { likes:  likedBy  } },
         { new: true }
       );
       res.json("Liked successfully");
@@ -30,11 +30,11 @@ const dislikePost = async (req, res) => {
     if (likedBy !== userId) {
       await Post.findOneAndUpdate(
         { _id: postId },
-        { $pull: { likes: { dislikedBy } } }
+        { $pull: { likes:  dislikedBy  } }
       );
       await Post.findOneAndUpdate(
         { _id: postId },
-        { $push: { likes: { dislikedBy } } }
+        { $push: { likes:  dislikedBy  } }
       );
       res.json("Disliked successfully");
     } else {
