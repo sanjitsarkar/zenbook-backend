@@ -10,23 +10,17 @@ const postSchema = new Schema(
     },
     likes: {
       type: [likeSchema.schema],
-      default: [],
-      unique: [true, "Like already exist."],
     },
     hashTags: {
       type: [String],
-      default: [],
-      unique: [true, "Hash tag already exist."],
     },
     comments: {
       type: [commentSchema.schema],
       default: [],
-      unique: [true, "Comment already exist."],
     },
     mediaURLs: {
       type: [String],
       required: [true, "MediaURLs can't be empty."],
-      unique: [true, "MediaURLs already exist."],
     },
     postedBy: {
       type: Schema.Types.ObjectId,
@@ -37,7 +31,6 @@ const postSchema = new Schema(
       type: [Schema.Types.ObjectId],
       default: [],
       ref: "user",
-      unique: [true, "Share already exist."],
     },
   },
   { timestamps: true }
