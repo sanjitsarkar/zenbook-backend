@@ -10,8 +10,10 @@ const postSchema = new Schema(
     },
     likes: {
       type: [likeSchema.schema],
+      default: [],
     },
     hashTags: {
+      default: [],
       type: [String],
     },
     comments: {
@@ -20,6 +22,7 @@ const postSchema = new Schema(
     },
     mediaURLs: {
       type: [String],
+      default: [],
       required: [true, "MediaURLs can't be empty."],
     },
     postedBy: {
