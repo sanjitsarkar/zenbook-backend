@@ -6,24 +6,18 @@ const postSchema = new Schema(
     content: {
       type: String,
       index: true,
-      default: "",
     },
     likes: {
       type: [likeSchema.schema],
-      default: [],
     },
     hashTags: {
-      default: [],
       type: [String],
     },
     comments: {
       type: [commentSchema.schema],
-      default: [],
     },
     mediaURLs: {
       type: [String],
-      default: [],
-      required: [true, "MediaURLs can't be empty."],
     },
     postedBy: {
       type: Schema.Types.ObjectId,
@@ -32,8 +26,6 @@ const postSchema = new Schema(
     },
     shares: {
       type: [Schema.Types.ObjectId],
-      default: [],
-      ref: "user",
     },
   },
   { timestamps: true }

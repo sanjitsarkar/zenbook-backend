@@ -3,13 +3,24 @@ const { Post, User } = require("../models");
 const addPost = async (req, res) => {
   try {
     const { content, mediaURLs } = req.body;
-    const post = await Post.create({
-      content,
-      mediaURLs,
-      postedBy: req.user.id,
+    const hashTags = content.split(" ").map((word) => {
+      if (word.startsWith("#")) return word.slice(1);
     });
+    let data = {
+      content,
+      postedBy: req.user.id,
+    };
+    if (hashTags[0] !== undefined) data = { ...data, hashTags };
+    if (mediaURLs.length > 0) data = { ...data, mediaURLs };
+
+    let post = new Post(data);
+
+    await post.save();
+    post = await post.populate("postedBy", "_id name profilePictureURL");
+
     res.json({ post });
   } catch (err) {
+    console.log({ err });
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
