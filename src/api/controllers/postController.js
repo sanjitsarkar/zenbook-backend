@@ -3,14 +3,20 @@ const { Post, User } = require("../models");
 const addPost = async (req, res) => {
   try {
     const { content, mediaURLs } = req.body;
-    const hashTags = content.split(" ").map((word) => {
+    const hashTags = content.split(" ").filter((word) => {
       if (word.startsWith("#")) return word.slice(1);
     });
     let data = {
       content,
       postedBy: req.user.id,
     };
-    if (hashTags[0] !== undefined) data = { ...data, hashTags };
+    if (hashTags[0] !== undefined)
+      data = {
+        ...data,
+        hashTags: hashTags.map((tag) => ({
+          tag,
+        })),
+      };
     if (mediaURLs.length > 0) data = { ...data, mediaURLs };
 
     let post = new Post(data);
@@ -270,9 +276,10 @@ const fetchAllPost = async (req, res) => {
 const fetchAllPostByUserId = async (req, res) => {
   try {
     const { search } = req.query;
-    const { postedBy } = req.params;
-
+    let { postedBy } = req.params;
+    if (postedBy === "undefined") postedBy = req.user.id;
     const userInfo = await User.findOne({ _id: postedBy });
+    console.log("userInfo", userInfo);
     let posts;
     if (search)
       posts = await Post.find(

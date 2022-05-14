@@ -30,7 +30,7 @@ router.put("/posts/draft/:postId", auth, addPostToDraft);
 router.delete("/posts/archived/:postId", auth, removePostFromArchived);
 router.delete("/posts/bookmarked/:postId", auth, removePostFromBookmarked);
 router.delete("/posts/draft/:postId", auth, removePostFromDraft);
-router.get("/:id/posts", auth, fetchAllPostByUserId);
+router.get("/:postedBy/posts", auth, fetchAllPostByUserId);
 router.get("/posts/sortBy=date", auth, sortAllUserPostByDate);
 router.get("/posts/trending", auth, fetchAllTrendingUserPost);
 router.put("/follow/:followingId", auth, followUser);
