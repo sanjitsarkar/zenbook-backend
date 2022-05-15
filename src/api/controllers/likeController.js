@@ -2,21 +2,20 @@ const { Post } = require("../models");
 
 const likePost = async (req, res) => {
   try {
-    const { likedBy, postId } = req.body;
-    const userId = req.user.id;
-    if (likedBy !== userId) {
+    const { likedBy, postedBy } = req.body;
+    const { postId } = req.params;
+
+    if (likedBy !== postedBy) {
       await Post.findOneAndUpdate(
         { _id: postId },
-        { $pull: { likes:  likedBy  } }
+        { $push: { likes: likedBy } },
+        {
+          new: true,
+        }
       );
-      await Post.findOneAndUpdate(
-        { _id: postId },
-        { $push: { likes:  likedBy  } },
-        { new: true }
-      );
-      res.json("Liked successfully");
+      res.json({ postId });
     } else {
-      res.json("Can't like your own post");
+      res.status(401).json("Can't like your own post");
     }
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -24,21 +23,20 @@ const likePost = async (req, res) => {
 };
 const dislikePost = async (req, res) => {
   try {
-    const { dislikedBy, postId } = req.body;
-    const userId = req.user.id;
+    const { dislikedBy, postedBy } = req.body;
 
-    if (likedBy !== userId) {
+    const { postId } = req.params;
+    if (dislikedBy !== postedBy) {
       await Post.findOneAndUpdate(
         { _id: postId },
-        { $pull: { likes:  dislikedBy  } }
+        { $pull: { likes: dislikedBy } },
+        {
+          new: true,
+        }
       );
-      await Post.findOneAndUpdate(
-        { _id: postId },
-        { $push: { likes:  dislikedBy  } }
-      );
-      res.json("Disliked successfully");
+      res.json({ postId });
     } else {
-      res.json("Can't dislike your own post");
+      res.status(401).json("Can't dislike your own post");
     }
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });

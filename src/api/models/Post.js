@@ -1,8 +1,6 @@
 const { Schema, model } = require("mongoose");
-const likeSchema = require("./Like");
 const commentSchema = require("./Comment");
 const mediaUrlSchema = require("./MediaUrl");
-const shareSchema = require("./Share");
 const postSchema = new Schema(
   {
     content: {
@@ -10,7 +8,8 @@ const postSchema = new Schema(
       index: true,
     },
     likes: {
-      type: [likeSchema.schema],
+      type: [Schema.Types.ObjectId],
+      ref: "user",
     },
     hashTags: {
       type: [String],
@@ -27,7 +26,7 @@ const postSchema = new Schema(
       ref: "user",
     },
     shares: {
-      type: [shareSchema.schema],
+      type: [Schema.Types.ObjectId],
     },
   },
   { timestamps: true }
