@@ -3,7 +3,6 @@ const likeSchema = require("./Like");
 const commentSchema = require("./Comment");
 const mediaUrlSchema = require("./MediaUrl");
 const shareSchema = require("./Share");
-const hashTagSchema = require("./Hashtag");
 const postSchema = new Schema(
   {
     content: {
@@ -14,14 +13,13 @@ const postSchema = new Schema(
       type: [likeSchema.schema],
     },
     hashTags: {
-      type: [hashTagSchema.schema],
+      type: [String],
     },
     comments: {
       type: [commentSchema.schema],
     },
     mediaURLs: {
       type: [mediaUrlSchema.schema],
-      required: false,
     },
     postedBy: {
       type: Schema.Types.ObjectId,

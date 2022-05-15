@@ -62,7 +62,6 @@ const userSchema = new Schema(
     },
     hashTagsFollowed: {
       type: [String],
-      default: [],
       unique: [true, "Hashtag already exist."],
     },
     followings: {

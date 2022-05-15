@@ -13,9 +13,7 @@ const addPost = async (req, res) => {
     if (hashTags[0] !== undefined)
       data = {
         ...data,
-        hashTags: hashTags.map((tag) => ({
-          tag,
-        })),
+        hashTags,
       };
     if (mediaURLs.length > 0) data = { ...data, mediaURLs };
 
@@ -58,7 +56,7 @@ const deletePost = async (req, res) => {
     const { postId } = req.params;
     const isPostExists = await Post.findOne({
       _id: postId,
-      postId: req.user.id,
+      postedBy: req.user.id,
     });
     if (isPostExists) {
       await Post.deleteOne({ _id: postId }, { new: true });
