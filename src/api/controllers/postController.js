@@ -266,7 +266,6 @@ const fetchAllPost = async (req, res) => {
       posts = await Post.find({})
         .sort({ updatedAt: -1 })
         .populate("postedBy", "_id name profilePictureURL");
-    console.log("posts", posts);
     res.json({ posts });
   } catch (err) {
     console.log(err);
