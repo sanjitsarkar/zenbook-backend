@@ -20,7 +20,7 @@ const { getUserInfo } = require("../controllers/authController");
 const router = express.Router();
 
 router.get("/posts", auth, fetchAllUserPost);
-router.get("/", auth, getUserInfo);
+router.get("/profile/:id", auth, getUserInfo);
 router.get("/posts/archived", auth, fetchAllUserArchivedPost);
 router.get("/posts/bookmarked", auth, fetchAllUserBookmarkedPost);
 router.get("/posts/draft", auth, fetchAllUserDraftPost);

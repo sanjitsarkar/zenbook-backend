@@ -27,11 +27,9 @@ const userSchema = new Schema(
     },
     bio: {
       type: String,
-      default: "",
     },
     portfolioUrl: {
       type: String,
-      default: "",
     },
     password: {
       type: String,
@@ -64,7 +62,7 @@ const userSchema = new Schema(
       type: [String],
       unique: [true, "Hashtag already exist."],
     },
-    followings: {
+    following: {
       type: [Schema.Types.ObjectId],
       ref: "user",
       unique: [true, "Following already exist."],

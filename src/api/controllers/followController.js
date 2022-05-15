@@ -1,4 +1,3 @@
-const req = require("express/lib/request");
 const { User } = require("../models");
 
 const followUser = async (req, res) => {
@@ -11,9 +10,9 @@ const followUser = async (req, res) => {
       );
       await User.findOneAndUpdate(
         { _id: req.user.id },
-        { $push: { followings: req.user.id } }
+        { $push: { following: followingId } }
       );
-      res.json("Successfully followed");
+      res.json({ followingId });
     } else {
       res.json("Can't follow yourself");
     }
@@ -32,9 +31,9 @@ const unFollowUser = async (req, res) => {
       );
       await User.findOneAndUpdate(
         { _id: req.user.id },
-        { $pull: { followings: req.user.id } }
+        { $pull: { following: followingId } }
       );
-      res.json("Successfully unfollowed");
+      res.json({ followingId });
     } else {
       res.json("Can't unfollow yourself");
     }

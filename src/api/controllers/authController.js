@@ -25,10 +25,13 @@ const signupController = async (req, res) => {
   }
 };
 const getUserInfo = async (req, res) => {
+  let { id } = req.params;
   try {
-    const user = await User.findOne({ _id: req.user.id }).select("-password");
+    const profile = await User.findById(id).select(
+      "-password -draftPosts -archivedPosts -bookmarkedPosts"
+    );
     res.json({
-      user,
+      profile,
     });
   } catch (err) {
     res.status(401).json({ errors: [err.message.split(",")] });
