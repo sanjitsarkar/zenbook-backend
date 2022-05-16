@@ -2,31 +2,29 @@ const { Reply } = require("../models");
 
 const addReply = async (req, res) => {
   try {
-    const { repliedBy, id: commentId } = req.body;
-    const reply = await Reply.create({ repliedBy, commentId }).populate(
-      "repliedBy",
-      "_id name profilePictureURL"
-    );
-    res.json({ reply });
+    const { reply, repliedBy } = req.body;
+    const { commentId } = req.params;
+    console.log(req.body);
+    let _reply = new Reply({ reply, repliedBy, commentId });
+    await _reply.save();
+    _reply = await _reply.populate("repliedBy", "_id name profilePictureURL");
+    res.json({ reply: _reply });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
 const removeReply = async (req, res) => {
   try {
-    const { repliedBy, id: commentId } = req.body;
-    await Reply.remove({ repliedBy, commentId }, { new: true }).populate(
-      "repliedBy",
-      "_id name profilePictureURL"
-    );
-    res.json("Reply deleted successfully");
+    const { replyId } = req.params;
+    await Reply.findOneAndDelete({ _id: replyId });
+    res.json({ replyId });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
 const fetchAllReply = async (req, res) => {
   try {
-    const { id: commentId } = req.body;
+    const { commentId } = req.params;
     const replies = await Reply.find({ commentId }).populate(
       "repliedBy",
       "_id name profilePictureURL"

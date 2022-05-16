@@ -1,27 +1,38 @@
-const { Post, User } = require("../models");
+const { Post } = require("../models");
 
 const addComment = async (req, res) => {
   try {
-    const { commentedBy, id: postId } = req.body;
-    const post = await Post.findOneAndUpdate(
+    const { commentedBy, comment } = req.body;
+    const { postId } = req.params;
+    console.log(req.body);
+    console.log(req.params);
+    const comments = await Post.findOneAndUpdate(
       { _id: postId },
-      { $push: { comments:  commentedBy  } },
+      { $push: { comments: { commentedBy, comment } } },
       { new: true }
-    ).populate("comments", "commentedBy", "_id name profilePictureURL");
-    res.json({ post });
+    )
+
+      .select("comments")
+      .populate("comments.commentedBy", "_id name profilePictureURL");
+    res.json({ comments });
   } catch (err) {
+    console.log({ err });
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
 const removeComment = async (req, res) => {
   try {
-    const { commentedBy, id: postId } = req.body;
-    await Post.findOneAndUpdate(
+    const { commentedBy } = req.body;
+    const { postId } = req.params;
+
+    const comments = await Post.findOneAndUpdate(
       { _id: postId },
-      { $pull: { comments:  commentedBy  } },
+      { $pull: { comments: { commentedBy } } },
       { new: true }
-    ).populate("comments", "commentedBy", "_id name profilePictureURL");
-    res.json("Comment deleted successfully");
+    )
+      .select("comments")
+      .populate("comments", "commentedBy", "_id name profilePictureURL");
+    res.json({ comments });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }

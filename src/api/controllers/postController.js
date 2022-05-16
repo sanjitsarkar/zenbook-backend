@@ -22,7 +22,9 @@ const addPost = async (req, res) => {
     let post = new Post(data);
 
     await post.save();
-    post = await post.populate("postedBy", "_id name profilePictureURL");
+    post = await post
+      .populate("postedBy", "_id name profilePictureURL")
+      .populate("comments.commentedBy", "_id name profilePictureURL");
 
     res.json({ post });
   } catch (err) {
@@ -43,7 +45,9 @@ const updatePost = async (req, res) => {
         { _id: postId },
         { content, mediaURLs },
         { new: true }
-      ).populate("postedBy", "_id name profilePictureURL");
+      )
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
       res.json("Post updated successfully");
     } else
       res
@@ -74,10 +78,7 @@ const deletePost = async (req, res) => {
 const fetchPost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const post = await Post.findById(postId).populate(
-      "postedBy",
-      "_id name profilePictureURL"
-    );
+    const post = await Post.findById(postId).populate();
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -99,15 +100,17 @@ const fetchAllUserPost = async (req, res) => {
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
       )
-        .sort({ score: { $meta: "textScore" }, updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     } else {
       posts = await Post.find({
         isArchived: false,
         postedBy,
       })
-        .sort({ updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ updatedAt: -1 })
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     }
     res.json({ posts });
   } catch (err) {
@@ -123,7 +126,9 @@ const fetchAllUserDraftPost = async (req, res) => {
         const post = await Post.find({
           isArchived: false,
           _id: postId,
-        }).populate("postedBy", "_id name profilePictureURL");
+        })
+          .populate("postedBy", "_id name profilePictureURL")
+          .populate("comments.commentedBy", "_id name profilePictureURL");
         return post[0];
       })
     );
@@ -140,10 +145,7 @@ const addPostToDraft = async (req, res) => {
       { $push: { draftPosts: postId } },
       { new: true }
     );
-    const post = await Post.findById(postId).populate(
-      "postedBy",
-      "_id name profilePictureURL"
-    );
+    const post = await Post.findById(postId).populate();
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -171,7 +173,9 @@ const fetchAllUserArchivedPost = async (req, res) => {
       user?.archivedPosts?.map(async (postId) => {
         const post = await Post.find({
           _id: postId,
-        }).populate("postedBy", "_id name profilePictureURL");
+        })
+          .populate("postedBy", "_id name profilePictureURL")
+          .populate("comments.commentedBy", "_id name profilePictureURL");
         return post[0];
       })
     );
@@ -198,7 +202,9 @@ const addPostToArchived = async (req, res) => {
         },
       },
       { new: true }
-    ).populate("postedBy", "_id name profilePictureURL");
+    )
+      .populate("postedBy", "_id name profilePictureURL")
+      .populate("comments.commentedBy", "_id name profilePictureURL");
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -231,7 +237,9 @@ const fetchAllUserBookmarkedPost = async (req, res) => {
         const post = await Post.find({
           isArchived: false,
           _id: postId,
-        }).populate("postedBy", "_id name profilePictureURL");
+        })
+          .populate("postedBy", "_id name profilePictureURL")
+          .populate("comments.commentedBy", "_id name profilePictureURL");
         return post[0];
       })
     );
@@ -248,10 +256,7 @@ const addPostToBookmarked = async (req, res) => {
       { $push: { bookmarkedPosts: postId } },
       { new: true }
     );
-    const post = await Post.findById(postId).populate(
-      "postedBy",
-      "_id name profilePictureURL"
-    );
+    const post = await Post.findById(postId).populate();
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -281,12 +286,14 @@ const fetchAllPost = async (req, res) => {
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
       )
-        .sort({ score: { $meta: "textScore" }, updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({ isArchived: false })
-        .sort({ updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ updatedAt: -1 })
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
     console.log(err);
@@ -310,15 +317,17 @@ const fetchAllPostByUserId = async (req, res) => {
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
       )
-        .sort({ score: { $meta: "textScore" }, updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
         isArchived: false,
         postedBy: { $in: [postedBy, userInfo.following] },
       })
-        .sort({ updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ updatedAt: -1 })
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -342,15 +351,17 @@ const fetchAllTrendingUserPost = async (req, res) => {
         },
         { score: { $meta: "textScore" } }
       )
-        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: -1 })
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
         isArchived: false,
         postedBy: { $in: [postedBy, userInfo.following] },
       })
-        .sort({ likes: -1, updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ likes: -1, updatedAt: -1 })
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -381,14 +392,16 @@ const sortAllUserPostByDate = async (req, res) => {
         { score: { $meta: "textScore" } }
       )
         .sort({ updatedAt: order, score: { $meta: "textScore" } })
-        .populate("postedBy", "_id name profilePictureURL");
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
         isArchived: false,
         postedBy: { $in: [postedBy, userInfo.following] },
       })
         .sort({ updatedAt: order })
-        .populate("postedBy", "_id name profilePictureURL");
+        .populate("postedBy")
+        .populate();
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -409,14 +422,15 @@ const fetchAllTrendingPost = async (req, res) => {
         },
         { score: { $meta: "textScore" } }
       )
-        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: -1 })
+        .populate("postedBy", "_id name profilePictureURL")
+        .populate("comments.commentedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
         isArchived: false,
       })
-        .sort({ likes: -1, updatedAt: 1 })
-        .populate("postedBy", "_id name profilePictureURL");
+        .sort({ likes: -1, updatedAt: -1 })
+        .populate();
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -443,13 +457,13 @@ const sortAllPostByDate = async (req, res) => {
         { score: { $meta: "textScore" } }
       )
         .sort({ updatedAt: order, score: { $meta: "textScore" } })
-        .populate("postedBy", "_id name profilePictureURL");
+        .populate();
     else
       posts = await Post.find({
         isArchived: false,
       })
         .sort({ updatedAt: order })
-        .populate("postedBy", "_id name profilePictureURL");
+        .populate();
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -462,8 +476,8 @@ const fetchAllPostByHashTags = async (req, res) => {
       isArchived: false,
       hashTags: { $in: hashtag },
     })
-      .sort({ updatedAt: 1 })
-      .populate("postedBy", "_id name profilePictureURL");
+      .sort({ updatedAt: -1 })
+      .populate();
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });

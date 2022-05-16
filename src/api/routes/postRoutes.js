@@ -25,6 +25,9 @@ const {
 const router = express.Router();
 
 router.get("/", fetchAllPost);
+router.post("/comments/:commentId", auth, addReply);
+router.delete("/replies/:replyId", auth, removeReply);
+router.get("/comments/:commentId", auth, fetchAllReply);
 router.post("/:postId", auth, addPost);
 router.get("/hashtag/:id", auth, fetchAllPostByHashTags);
 router.get("/trending/", auth, fetchAllTrendingPost);
@@ -34,9 +37,6 @@ router.get("/:postId", auth, fetchPost);
 router.put("/:postId", auth, updatePost);
 router.put("/:postId/comments/add", auth, addComment);
 router.put("/:postId/comments/remove", auth, removeComment);
-router.get("/:postId/comments", auth, fetchAllReply);
-router.post("/:postId/comments", auth, addReply);
-router.delete("/:postId/comments", auth, removeReply);
 router.put("/:postId/like", auth, likePost);
 router.put("/:postId/dislike", auth, dislikePost);
 
