@@ -25,7 +25,7 @@ const {
 const router = express.Router();
 
 router.get("/", fetchAllPost);
-router.post("/", auth, addPost);
+router.post("/:postId", auth, addPost);
 router.get("/hashtag/:id", auth, fetchAllPostByHashTags);
 router.get("/trending/", auth, fetchAllTrendingPost);
 router.get("/sortBy=date", auth, sortAllPostByDate);

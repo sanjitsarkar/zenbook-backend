@@ -28,6 +28,10 @@ const postSchema = new Schema(
     shares: {
       type: [Schema.Types.ObjectId],
     },
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

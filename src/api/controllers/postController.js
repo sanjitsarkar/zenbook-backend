@@ -3,12 +3,14 @@ const { Post, User } = require("../models");
 const addPost = async (req, res) => {
   try {
     const { content, mediaURLs } = req.body;
+    const { postId } = req.params;
+
     const hashTags = content.split(" ").filter((word) => {
       if (word.startsWith("#")) return word.slice(1);
     });
     let data = {
       content,
-      postedBy: req.user.id,
+      postedBy: postId,
     };
     if (hashTags[0] !== undefined)
       data = {
@@ -85,20 +87,26 @@ const fetchAllUserPost = async (req, res) => {
   try {
     let posts;
     let { postedBy, search } = req.query;
-    if (postedBy) {
+    if (!postedBy) {
       postedBy = req.user.id;
     }
     if (search) {
       posts = await Post.find(
-        { postedBy },
+        {
+          isArchived: false,
+          postedBy,
+        },
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
       )
-        .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ score: { $meta: "textScore" }, updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     } else {
-      posts = await Post.find({ postedBy })
-        .sort({ updatedAt: -1 })
+      posts = await Post.find({
+        isArchived: false,
+        postedBy,
+      })
+        .sort({ updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     }
     res.json({ posts });
@@ -111,11 +119,12 @@ const fetchAllUserDraftPost = async (req, res) => {
     const postedBy = req.user.id;
     const user = await User.findById(postedBy);
     const posts = await Promise.all(
-      user.draftPosts.map(async (post) => {
-        return await Post.findById(post).populate(
-          "postedBy",
-          "_id name profilePictureURL"
-        );
+      user?.draftPosts?.map(async (postId) => {
+        const post = await Post.find({
+          isArchived: false,
+          _id: postId,
+        }).populate("postedBy", "_id name profilePictureURL");
+        return post[0];
       })
     );
     res.json({ posts });
@@ -159,13 +168,14 @@ const fetchAllUserArchivedPost = async (req, res) => {
     const postedBy = req.user.id;
     const user = await User.findById(postedBy);
     const posts = await Promise.all(
-      user.archivedPosts.map(async (post) => {
-        return await Post.findById(post).populate(
-          "postedBy",
-          "_id name profilePictureURL"
-        );
+      user?.archivedPosts?.map(async (postId) => {
+        const post = await Post.find({
+          _id: postId,
+        }).populate("postedBy", "_id name profilePictureURL");
+        return post[0];
       })
     );
+
     res.json({ posts });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -179,10 +189,16 @@ const addPostToArchived = async (req, res) => {
       { $push: { archivedPosts: postId } },
       { new: true }
     );
-    const post = await Post.findById(postId).populate(
-      "postedBy",
-      "_id name profilePictureURL"
-    );
+
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $set: {
+          isArchived: true,
+        },
+      },
+      { new: true }
+    ).populate("postedBy", "_id name profilePictureURL");
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -196,7 +212,11 @@ const removePostFromArchived = async (req, res) => {
       { $pull: { archivedPosts: postId } },
       { new: true }
     );
-
+    await Post.findByIdAndUpdate(postId, {
+      $set: {
+        isArchived: false,
+      },
+    });
     res.json({ postId });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -207,11 +227,12 @@ const fetchAllUserBookmarkedPost = async (req, res) => {
     const postedBy = req.user.id;
     const user = await User.findById(postedBy);
     const posts = await Promise.all(
-      user.bookmarkedPosts.map(async (post) => {
-        return await Post.findById(post).populate(
-          "postedBy",
-          "_id name profilePictureURL"
-        );
+      user?.bookmarkedPosts?.map(async (postId) => {
+        const post = await Post.find({
+          isArchived: false,
+          _id: postId,
+        }).populate("postedBy", "_id name profilePictureURL");
+        return post[0];
       })
     );
     res.json({ posts });
@@ -256,15 +277,15 @@ const fetchAllPost = async (req, res) => {
     let posts;
     if (search)
       posts = await Post.find(
-        {},
+        { isArchived: false },
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
       )
-        .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ score: { $meta: "textScore" }, updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     else
-      posts = await Post.find({})
-        .sort({ updatedAt: -1 })
+      posts = await Post.find({ isArchived: false })
+        .sort({ updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
@@ -282,19 +303,21 @@ const fetchAllPostByUserId = async (req, res) => {
     if (search)
       posts = await Post.find(
         {
+          isArchived: false,
           postId: { $in: [postedBy, userInfo.following] },
         },
 
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
       )
-        .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ score: { $meta: "textScore" }, updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
+        isArchived: false,
         postedBy: { $in: [postedBy, userInfo.following] },
       })
-        .sort({ updatedAt: -1 })
+        .sort({ updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
@@ -311,6 +334,7 @@ const fetchAllTrendingUserPost = async (req, res) => {
     if (search)
       posts = await Post.find(
         {
+          isArchived: false,
           postedBy: { $in: [postedBy, userInfo.following] },
         },
         {
@@ -318,13 +342,14 @@ const fetchAllTrendingUserPost = async (req, res) => {
         },
         { score: { $meta: "textScore" } }
       )
-        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
+        isArchived: false,
         postedBy: { $in: [postedBy, userInfo.following] },
       })
-        .sort({ likes: -1, updatedAt: -1 })
+        .sort({ likes: -1, updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
@@ -347,6 +372,7 @@ const sortAllUserPostByDate = async (req, res) => {
     if (search)
       posts = await Post.find(
         {
+          isArchived: false,
           postedBy: { $in: [postedBy, userInfo.following] },
         },
         {
@@ -358,6 +384,7 @@ const sortAllUserPostByDate = async (req, res) => {
         .populate("postedBy", "_id name profilePictureURL");
     else
       posts = await Post.find({
+        isArchived: false,
         postedBy: { $in: [postedBy, userInfo.following] },
       })
         .sort({ updatedAt: order })
@@ -374,17 +401,21 @@ const fetchAllTrendingPost = async (req, res) => {
     let posts;
     if (search)
       posts = await Post.find(
-        {},
+        {
+          isArchived: false,
+        },
         {
           $text: { $search: search },
         },
         { score: { $meta: "textScore" } }
       )
-        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     else
-      posts = await Post.find({})
-        .sort({ likes: -1, updatedAt: -1 })
+      posts = await Post.find({
+        isArchived: false,
+      })
+        .sort({ likes: -1, updatedAt: 1 })
         .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
@@ -403,7 +434,9 @@ const sortAllPostByDate = async (req, res) => {
     let posts;
     if (search)
       posts = await Post.find(
-        {},
+        {
+          isArchived: false,
+        },
         {
           $text: { $search: search },
         },
@@ -412,7 +445,9 @@ const sortAllPostByDate = async (req, res) => {
         .sort({ updatedAt: order, score: { $meta: "textScore" } })
         .populate("postedBy", "_id name profilePictureURL");
     else
-      posts = await Post.find({})
+      posts = await Post.find({
+        isArchived: false,
+      })
         .sort({ updatedAt: order })
         .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
@@ -424,9 +459,10 @@ const fetchAllPostByHashTags = async (req, res) => {
   const { hashtag } = req.params;
   try {
     const posts = await Post.find({
+      isArchived: false,
       hashTags: { $in: hashtag },
     })
-      .sort({ updatedAt: -1 })
+      .sort({ updatedAt: 1 })
       .populate("postedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
