@@ -1,4 +1,6 @@
 const { Schema, model } = require("mongoose");
+const replySchema = require("./Reply");
+
 const commentSchema = new Schema(
   {
     comment: {
@@ -8,6 +10,7 @@ const commentSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "user",
     },
+    replies: { type: [Schema.Types.ObjectId], ref: "reply" },
   },
   { timestamps: true }
 );

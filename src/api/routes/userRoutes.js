@@ -16,11 +16,15 @@ const {
   fetchAllTrendingUserPost,
 } = require("../controllers/postController");
 const { followUser, unFollowUser } = require("../controllers/followController");
-const { getUserInfo } = require("../controllers/authController");
+const {
+  getUserInfo,
+  updateUserProfile,
+} = require("../controllers/authController");
 const router = express.Router();
 
 router.get("/posts", auth, fetchAllUserPost);
 router.get("/profile/:id", auth, getUserInfo);
+router.put("/profile/:id", auth, updateUserProfile);
 router.get("/posts/archived", auth, fetchAllUserArchivedPost);
 router.get("/posts/bookmarked", auth, fetchAllUserBookmarkedPost);
 router.get("/posts/draft", auth, fetchAllUserDraftPost);
@@ -31,8 +35,8 @@ router.delete("/posts/archived/:postId", auth, removePostFromArchived);
 router.delete("/posts/bookmarked/:postId", auth, removePostFromBookmarked);
 router.delete("/posts/draft/:postId", auth, removePostFromDraft);
 router.get("/:postedBy/posts", auth, fetchAllPostByUserId);
-router.get("/posts/sortBy=date", auth, sortAllUserPostByDate);
-router.get("/posts/trending", auth, fetchAllTrendingUserPost);
+router.get("/:postedBy/posts/sortBy=date", auth, sortAllUserPostByDate);
+router.get("/:postedBy/posts/trending", auth, fetchAllTrendingUserPost);
 router.put("/follow/:followingId", auth, followUser);
 router.put("/unfollow/:followingId", auth, unFollowUser);
 

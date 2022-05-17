@@ -4,10 +4,10 @@ const addReply = async (req, res) => {
   try {
     const { reply, repliedBy } = req.body;
     const { commentId } = req.params;
-    console.log(req.body);
     let _reply = new Reply({ reply, repliedBy, commentId });
     await _reply.save();
     _reply = await _reply.populate("repliedBy", "_id name profilePictureURL");
+
     res.json({ reply: _reply });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });

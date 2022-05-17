@@ -4,8 +4,7 @@ const addComment = async (req, res) => {
   try {
     const { commentedBy, comment } = req.body;
     const { postId } = req.params;
-    console.log(req.body);
-    console.log(req.params);
+ 
     const comments = await Post.findOneAndUpdate(
       { _id: postId },
       { $push: { comments: { commentedBy, comment } } },
