@@ -123,18 +123,22 @@ const fetchAllUserDraftPost = async (req, res) => {
   try {
     const postedBy = req.user.id;
     const user = await User.findById(postedBy);
-    const posts = await Promise.all(
-      user?.draftPosts?.map(async (postId) => {
-        const post = await Post.find({
-          isArchived: false,
-          _id: postId,
+    if (user == undefined) {
+      res.json({ posts: [] });
+    } else {
+      const posts = await Promise.all(
+        user?.draftPosts?.map(async (postId) => {
+          const post = await Post.find({
+            isArchived: false,
+            _id: postId,
+          })
+            .populate("postedBy", "_id name profilePictureURL")
+            .populate("comments.commentedBy", "_id name profilePictureURL");
+          return post[0];
         })
-          .populate("postedBy", "_id name profilePictureURL")
-          .populate("comments.commentedBy", "_id name profilePictureURL");
-        return post[0];
-      })
-    );
-    res.json({ posts });
+      );
+      res.json({ posts });
+    }
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
@@ -173,18 +177,22 @@ const fetchAllUserArchivedPost = async (req, res) => {
   try {
     const postedBy = req.user.id;
     const user = await User.findById(postedBy);
-    const posts = await Promise.all(
-      user?.archivedPosts?.map(async (postId) => {
-        const post = await Post.find({
-          _id: postId,
+    if (user == undefined) {
+      res.json({ posts: [] });
+    } else {
+      const posts = await Promise.all(
+        user?.archivedPosts?.map(async (postId) => {
+          const post = await Post.find({
+            _id: postId,
+          })
+            .populate("postedBy", "_id name profilePictureURL")
+            .populate("comments.commentedBy", "_id name profilePictureURL");
+          return post[0];
         })
-          .populate("postedBy", "_id name profilePictureURL")
-          .populate("comments.commentedBy", "_id name profilePictureURL");
-        return post[0];
-      })
-    );
+      );
 
-    res.json({ posts });
+      res.json({ posts });
+    }
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }
@@ -236,18 +244,22 @@ const fetchAllUserBookmarkedPost = async (req, res) => {
   try {
     const postedBy = req.user.id;
     const user = await User.findById(postedBy);
-    const posts = await Promise.all(
-      user?.bookmarkedPosts?.map(async (postId) => {
-        const post = await Post.find({
-          isArchived: false,
-          _id: postId,
+    if (user == undefined) {
+      res.json({ posts: [] });
+    } else {
+      const posts = await Promise.all(
+        user?.bookmarkedPosts?.map(async (postId) => {
+          const post = await Post.find({
+            isArchived: false,
+            _id: postId,
+          })
+            .populate("postedBy", "_id name profilePictureURL")
+            .populate("comments.commentedBy", "_id name profilePictureURL");
+          return post[0];
         })
-          .populate("postedBy", "_id name profilePictureURL")
-          .populate("comments.commentedBy", "_id name profilePictureURL");
-        return post[0];
-      })
-    );
-    res.json({ posts });
+      );
+      res.json({ posts });
+    }
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
   }

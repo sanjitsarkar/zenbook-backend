@@ -18,7 +18,6 @@ const userSchema = new Schema(
     },
     profilePictureURL: {
       type: String,
-      default: "https://i.pravatar.cc/150",
       validate: (value) => isURL(value),
     },
     coverPictureURL: {
