@@ -3,21 +3,21 @@ const { Post, User } = require("../models");
 const addPost = async (req, res) => {
   try {
     const { content, mediaURLs } = req.body;
-    const { postId } = req.params;
+    const { id } = req.params;
 
     const hashTags = content.split(" ").filter((word) => {
       if (word.startsWith("#")) return word.slice(1);
     });
     let data = {
       content,
-      postedBy: postId,
+      postedBy: id,
     };
     if (hashTags[0] !== undefined)
       data = {
         ...data,
         hashTags,
       };
-    if (mediaURLs.length > 0) data = { ...data, mediaURLs };
+    if (mediaURLs && mediaURLs.length > 0) data = { ...data, mediaURLs };
 
     let post = new Post(data);
 
@@ -31,26 +31,42 @@ const addPost = async (req, res) => {
 };
 const updatePost = async (req, res) => {
   try {
-    const { postId } = req.params;
     const { content, mediaURLs } = req.body;
+    const { postId } = req.params;
     const isPostExists = await Post.findOne({
       _id: postId,
       postedBy: req.user.id,
     });
+
     if (isPostExists) {
-      await Post.updateOne(
+      const hashTags = content.split(" ").filter((word) => {
+        if (word.startsWith("#")) return word.slice(1);
+      });
+      let data = {
+        content,
+        postedBy: req.user.id,
+      };
+      if (hashTags[0] !== undefined)
+        data = {
+          ...data,
+          hashTags,
+        };
+      if (mediaURLs && mediaURLs.length > 0) data = { ...data, mediaURLs };
+      if (!mediaURLs) data = { ...data, mediaURLs: [] };
+      const post = await Post.findOneAndUpdate(
         { _id: postId },
-        { content, mediaURLs },
+        { ...data },
         { new: true }
       )
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL");
-      res.json("Post updated successfully");
+      res.json({ post });
     } else
       res
         .status(404)
         .json({ errors: ["You are not authorized to perform this action"] });
   } catch (err) {
+    console.log("err", err);
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
