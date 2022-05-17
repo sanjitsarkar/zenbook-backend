@@ -21,10 +21,7 @@ const addPost = async (req, res) => {
 
     let post = new Post(data);
 
-    await post.save();
-    post = await post
-      .populate("postedBy", "_id name profilePictureURL")
-      .populate("comments.commentedBy", "_id name profilePictureURL");
+    post = await post.save();
 
     res.json({ post });
   } catch (err) {
