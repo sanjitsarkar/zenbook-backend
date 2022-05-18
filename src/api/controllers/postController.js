@@ -2,15 +2,14 @@ const { Post, User } = require("../models");
 
 const addPost = async (req, res) => {
   try {
-    const { content, mediaURLs } = req.body;
-    const { id } = req.params;
+    const { content, mediaURLs, postedBy } = req.body;
 
     const hashTags = content.split(" ").filter((word) => {
       if (word.startsWith("#")) return word.slice(1);
     });
     let data = {
       content,
-      postedBy: id,
+      postedBy,
     };
     if (hashTags[0] !== undefined)
       data = {
@@ -25,17 +24,16 @@ const addPost = async (req, res) => {
 
     res.json({ post });
   } catch (err) {
-    console.log({ err });
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
 const updatePost = async (req, res) => {
   try {
-    const { content, mediaURLs } = req.body;
+    const { content, mediaURLs, postedBy } = req.body;
     const { postId } = req.params;
     const isPostExists = await Post.findOne({
       _id: postId,
-      postedBy: req.user.id,
+      postedBy,
     });
 
     if (isPostExists) {
@@ -44,7 +42,7 @@ const updatePost = async (req, res) => {
       });
       let data = {
         content,
-        postedBy: req.user.id,
+        postedBy,
       };
       if (hashTags[0] !== undefined)
         data = {
@@ -66,20 +64,19 @@ const updatePost = async (req, res) => {
         .status(404)
         .json({ errors: ["You are not authorized to perform this action"] });
   } catch (err) {
-    console.log("err", err);
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
 const deletePost = async (req, res) => {
   try {
-    const { postId } = req.params;
+    const { postId, postedBy } = req.params;
     const isPostExists = await Post.findOne({
       _id: postId,
-      postedBy: req.user.id,
+      postedBy,
     });
     if (isPostExists) {
       await Post.deleteOne({ _id: postId }, { new: true });
-      res.json({ post: { _id: postId } });
+      res.json({ postId });
     } else
       res
         .status(404)
@@ -103,9 +100,7 @@ const fetchAllUserPost = async (req, res) => {
   try {
     let posts;
     let { postedBy, search } = req.query;
-    if (!postedBy) {
-      postedBy = req.user.id;
-    }
+
     if (search) {
       posts = await Post.find(
         {
@@ -134,8 +129,8 @@ const fetchAllUserPost = async (req, res) => {
 };
 const fetchAllUserDraftPost = async (req, res) => {
   try {
-    const postedBy = req.user.id;
-    const user = await User.findById(postedBy);
+    const { id } = req.params;
+    const user = await User.findById(id);
     if (user == undefined) {
       res.json({ posts: [] });
     } else {
@@ -158,9 +153,10 @@ const fetchAllUserDraftPost = async (req, res) => {
 };
 const addPostToDraft = async (req, res) => {
   try {
-    const { postId } = req.params;
+    const { id } = req.params;
+    const { postId } = req.body;
     await User.findByIdAndUpdate(
-      req.user.id,
+      id,
       { $push: { draftPosts: postId } },
       { new: true }
     );
@@ -174,9 +170,9 @@ const addPostToDraft = async (req, res) => {
 };
 const removePostFromDraft = async (req, res) => {
   try {
-    const { postId } = req.params;
+    const { id, postId } = req.params;
     await User.findByIdAndUpdate(
-      req.user.id,
+      id,
       { $pull: { draftPosts: postId } },
       { new: true }
     );
@@ -188,8 +184,8 @@ const removePostFromDraft = async (req, res) => {
 };
 const fetchAllUserArchivedPost = async (req, res) => {
   try {
-    const postedBy = req.user.id;
-    const user = await User.findById(postedBy);
+    const { id } = req.params;
+    const user = await User.findById(id);
     if (user == undefined) {
       res.json({ posts: [] });
     } else {
@@ -212,9 +208,10 @@ const fetchAllUserArchivedPost = async (req, res) => {
 };
 const addPostToArchived = async (req, res) => {
   try {
-    const { postId } = req.params;
+    const { id } = req.params;
+    const { postId } = req.body;
     await User.findByIdAndUpdate(
-      req.user.id,
+      id,
       { $push: { archivedPosts: postId } },
       { new: true }
     );
@@ -237,9 +234,9 @@ const addPostToArchived = async (req, res) => {
 };
 const removePostFromArchived = async (req, res) => {
   try {
-    const { postId } = req.params;
+    const { id, postId } = req.params;
     await User.findByIdAndUpdate(
-      req.user.id,
+      id,
       { $pull: { archivedPosts: postId } },
       { new: true }
     );
@@ -255,8 +252,8 @@ const removePostFromArchived = async (req, res) => {
 };
 const fetchAllUserBookmarkedPost = async (req, res) => {
   try {
-    const postedBy = req.user.id;
-    const user = await User.findById(postedBy);
+    const { id } = req.params;
+    const user = await User.findById(id);
     if (user == undefined) {
       res.json({ posts: [] });
     } else {
@@ -279,9 +276,10 @@ const fetchAllUserBookmarkedPost = async (req, res) => {
 };
 const addPostToBookmarked = async (req, res) => {
   try {
-    const { postId } = req.params;
+    const { id } = req.params;
+    const { postId } = req.body;
     await User.findByIdAndUpdate(
-      req.user.id,
+      id,
       { $push: { bookmarkedPosts: postId } },
       { new: true }
     );
@@ -295,9 +293,10 @@ const addPostToBookmarked = async (req, res) => {
 };
 const removePostFromBookmarked = async (req, res) => {
   try {
-    const { postId } = req.params;
+    const { id, postId } = req.params;
+
     await User.findByIdAndUpdate(
-      req.user.id,
+      id,
       { $pull: { bookmarkedPosts: postId } },
       { new: true }
     );
@@ -327,7 +326,6 @@ const fetchAllPost = async (req, res) => {
         .populate("comments.commentedBy", "_id name profilePictureURL");
     res.json({ posts });
   } catch (err) {
-    console.log(err);
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };
@@ -336,13 +334,15 @@ const fetchAllPostByUserId = async (req, res) => {
   try {
     const { search } = req.query;
     let { postedBy } = req.params;
+
     const userInfo = await User.findOne({ _id: postedBy });
+
     let posts;
     if (search)
       posts = await Post.find(
         {
           isArchived: false,
-          postId: { $in: [postedBy, userInfo.following] },
+          postedBy: { $in: [postedBy, ...userInfo.following] },
         },
 
         { $text: { $search: search } },
@@ -354,7 +354,7 @@ const fetchAllPostByUserId = async (req, res) => {
     else
       posts = await Post.find({
         isArchived: false,
-        postedBy: { $in: [postedBy, userInfo.following] },
+        postedBy: { $in: [postedBy, ...userInfo.following] },
       })
         .sort({ updatedAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
@@ -388,7 +388,7 @@ const fetchAllTrendingUserPost = async (req, res) => {
     else
       posts = await Post.find({
         isArchived: false,
-        postedBy: { $in: [postedBy, userInfo.following] },
+        postedBy: { $in: [postedBy, ...userInfo.following] },
       })
         .sort({ likes: -1, updatedAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
@@ -400,9 +400,9 @@ const fetchAllTrendingUserPost = async (req, res) => {
 };
 const sortAllUserPostByDate = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, postedBy } = req.query;
     let { order } = req.query;
-    const postedBy = req.user.id;
+
     const userInfo = await User.findOne({ _id: postedBy });
 
     if (order === "asc") {
@@ -415,7 +415,7 @@ const sortAllUserPostByDate = async (req, res) => {
       posts = await Post.find(
         {
           isArchived: false,
-          postedBy: { $in: [postedBy, userInfo.following] },
+          postedBy: { $in: [postedBy, ...userInfo.following] },
         },
         {
           $text: { $search: search },

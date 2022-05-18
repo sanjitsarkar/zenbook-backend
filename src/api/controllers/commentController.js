@@ -4,7 +4,7 @@ const addComment = async (req, res) => {
   try {
     const { commentedBy, comment } = req.body;
     const { postId } = req.params;
- 
+
     const comments = await Post.findOneAndUpdate(
       { _id: postId },
       { $push: { comments: { commentedBy, comment } } },
@@ -15,7 +15,6 @@ const addComment = async (req, res) => {
       .populate("comments.commentedBy", "_id name profilePictureURL");
     res.json({ comments });
   } catch (err) {
-    console.log({ err });
     res.status(404).json({ errors: [err.message.split(",")] });
   }
 };

@@ -60,9 +60,55 @@ const updateUserProfile = async (req, res) => {
     res.status(401).json({ errors: [err.message.split(",")] });
   }
 };
+
+const getFollowers = async (req, res) => {
+  let { id } = req.params;
+  try {
+    const followers = await User.findById(id)
+      .select("followers")
+      .populate("followers", "_id name profilePictureURL");
+    res.json({
+      followers,
+    });
+  } catch (err) {
+    res.status(401).json({ errors: [err.message.split(",")] });
+  }
+};
+const getFollowing = async (req, res) => {
+  let { id } = req.params;
+  try {
+    const following = await User.findById(id)
+      .select("following")
+      .populate("following", "_id name profilePictureURL ");
+    res.json({
+      following,
+    });
+  } catch (err) {
+    res.status(401).json({ errors: [err.message.split(",")] });
+  }
+};
+const searchFollowers = async (req, res) => {
+  let { search } = req.query;
+  const users = await User.find(
+    {
+      $text: {
+        $search: search,
+        $caseSensitive: false,
+        $diacriticSensitive: false,
+      },
+    },
+    { score: { $meta: "textScore" } }
+  )
+    .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+    .select("-password -draftPosts -archivedPosts -bookmarkedPosts");
+  res.json({ users });
+};
 module.exports = {
   loginController,
   signupController,
   getUserInfo,
   updateUserProfile,
+  getFollowers,
+  getFollowing,
+  searchFollowers,
 };

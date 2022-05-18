@@ -9,6 +9,7 @@ const userSchema = new Schema(
       type: String,
       minlength: [5, "Name should be atleast of 5 characters."],
       required: [true, "Name is required."],
+      index: true,
     },
     email: {
       type: String,
@@ -76,6 +77,7 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
+userSchema.index({ email: "text", name: "text" });
 userSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt();
   this.password = await bcrypt.hash(this.password, salt);
@@ -105,7 +107,7 @@ userSchema.statics.login = async function (email, password) {
 userSchema.statics.signup = async function (name, email, password) {
   const isuserExist = await this.findOne({ email });
   if (isuserExist) {
-    throw Error("user already exist. Please login");
+    throw Error("User already exist. Please login");
   }
 
   const user = await this.create({

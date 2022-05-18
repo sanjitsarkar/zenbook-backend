@@ -5,7 +5,6 @@ const postSchema = new Schema(
   {
     content: {
       type: String,
-      index: true,
     },
     likes: {
       type: [Schema.Types.ObjectId],
@@ -35,5 +34,4 @@ const postSchema = new Schema(
   },
   { timestamps: true }
 );
-postSchema.index({ content: "text" });
 module.exports = post = model("post", postSchema);

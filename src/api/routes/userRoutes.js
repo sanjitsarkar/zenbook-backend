@@ -19,25 +19,32 @@ const { followUser, unFollowUser } = require("../controllers/followController");
 const {
   getUserInfo,
   updateUserProfile,
+  getFollowing,
+  getFollowers,
+  searchFollowers,
 } = require("../controllers/authController");
 const router = express.Router();
 
-router.get("/posts", auth, fetchAllUserPost);
-router.get("/profile/:id", auth, getUserInfo);
-router.put("/profile/:id", auth, updateUserProfile);
-router.get("/posts/archived", auth, fetchAllUserArchivedPost);
-router.get("/posts/bookmarked", auth, fetchAllUserBookmarkedPost);
-router.get("/posts/draft", auth, fetchAllUserDraftPost);
-router.put("/posts/archived/:postId", auth, addPostToArchived);
-router.put("/posts/bookmarked/:postId", auth, addPostToBookmarked);
-router.put("/posts/draft/:postId", auth, addPostToDraft);
-router.delete("/posts/archived/:postId", auth, removePostFromArchived);
-router.delete("/posts/bookmarked/:postId", auth, removePostFromBookmarked);
-router.delete("/posts/draft/:postId", auth, removePostFromDraft);
+router.get("/", auth, searchFollowers);
 router.get("/:postedBy/posts", auth, fetchAllPostByUserId);
 router.get("/:postedBy/posts/sortBy=date", auth, sortAllUserPostByDate);
 router.get("/:postedBy/posts/trending", auth, fetchAllTrendingUserPost);
-router.put("/follow/:followingId", auth, followUser);
-router.put("/unfollow/:followingId", auth, unFollowUser);
+router.put("/:followerId/follow/:followingId", auth, followUser);
+router.put("/:followerId/unfollow/:followingId", auth, unFollowUser);
+router.get("/posts", auth, fetchAllUserPost);
+router.get("/profile/:id", auth, getUserInfo);
+router.put("/profile/:id", auth, updateUserProfile);
+router.get("/:id/posts/archived/", auth, fetchAllUserArchivedPost);
+router.get("/:id/posts/bookmarked", auth, fetchAllUserBookmarkedPost);
+router.get("/:id/posts/draft", auth, fetchAllUserDraftPost);
+router.put("/:id/posts/archived/", auth, addPostToArchived);
+router.put("/:id/posts/bookmarked/", auth, addPostToBookmarked);
+router.put("/:id/posts/draft/", auth, addPostToDraft);
+router.delete("/:id/posts/archived/:postId", auth, removePostFromArchived);
+router.delete("/:id/posts/bookmarked/:postId", auth, removePostFromBookmarked);
+router.delete("/:id/posts/draft/:postId", auth, removePostFromDraft);
+
+router.get("/:id/followers", auth, getFollowers);
+router.get("/:id/following", auth, getFollowing);
 
 module.exports = router;

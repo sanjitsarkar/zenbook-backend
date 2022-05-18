@@ -2,14 +2,14 @@ const { User } = require("../models");
 
 const followUser = async (req, res) => {
   try {
-    const { followingId } = req.params;
-    if (followingId !== req.user.id) {
+    const { followingId, followerId } = req.params;
+    if (followingId !== followerId) {
       await User.findOneAndUpdate(
         { _id: followingId },
-        { $push: { followers: req.user.id } }
+        { $push: { followers: followerId } }
       );
       await User.findOneAndUpdate(
-        { _id: req.user.id },
+        { _id: followerId },
         { $push: { following: followingId } }
       );
       res.json({ followingId });
@@ -23,14 +23,14 @@ const followUser = async (req, res) => {
 
 const unFollowUser = async (req, res) => {
   try {
-    const { followingId } = req.params;
-    if (followingId !== req.user.id) {
+    const { followingId, followerId } = req.params;
+    if (followingId !== followerId) {
       await User.findOneAndUpdate(
         { _id: followingId },
-        { $pull: { followers: req.user.id } }
+        { $pull: { followers: followerId } }
       );
       await User.findOneAndUpdate(
-        { _id: req.user.id },
+        { _id: followerId },
         { $pull: { following: followingId } }
       );
       res.json({ followingId });
