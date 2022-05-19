@@ -6,16 +6,17 @@ const { default: isURL } = require("validator/lib/isURL");
 const userSchema = new Schema(
   {
     name: {
+      index: true,
       type: String,
       minlength: [5, "Name should be atleast of 5 characters."],
       required: [true, "Name is required."],
-      index: true,
     },
     email: {
       type: String,
       unique: [true, "Email is already taken."],
       required: [true, "Email is required."],
       validate: (value) => isEmail(value),
+      index: true,
     },
     profilePictureURL: {
       type: String,
@@ -27,9 +28,11 @@ const userSchema = new Schema(
     },
     bio: {
       type: String,
+      minlength: [10, "Bio should be atleast of 10 characters."],
     },
     portfolioUrl: {
       type: String,
+      validate: (value) => isURL(value),
     },
     password: {
       type: String,
@@ -41,43 +44,38 @@ const userSchema = new Schema(
     },
     draftPosts: {
       type: [Schema.Types.ObjectId],
-      unique: [true, "Draft post already exist."],
       ref: "post",
     },
     archivedPosts: {
       type: [Schema.Types.ObjectId],
-      unique: [true, "Archived post already exist."],
       ref: "post",
     },
     bookmarkedPosts: {
       type: [Schema.Types.ObjectId],
-      unique: [true, "Bookmarked post already exist."],
       ref: "post",
     },
     stories: {
       type: [Schema.Types.ObjectId],
-      unique: [true, "Story already exist."],
     },
     hashTagsFollowed: {
       type: [String],
-      unique: [true, "Hashtag already exist."],
     },
     following: {
       type: [Schema.Types.ObjectId],
       ref: "user",
-      unique: [true, "Following already exist."],
     },
     followers: {
       type: [Schema.Types.ObjectId],
       ref: "user",
-      unique: [true, "Follower already exist."],
     },
   },
+
   {
     timestamps: true,
   }
 );
-userSchema.index({ email: "text", name: "text" });
+
+userSchema.index({ name: "text", email: "text" }, { sparse: true });
 userSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt();
   this.password = await bcrypt.hash(this.password, salt);

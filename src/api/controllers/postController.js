@@ -4,9 +4,10 @@ const addPost = async (req, res) => {
   try {
     const { content, mediaURLs, postedBy } = req.body;
 
-    const hashTags = content.split(" ").filter((word) => {
-      if (word.startsWith("#")) return word.slice(1);
-    });
+    const hashTags = content
+      .split(" ")
+      .filter((word) => word.startsWith("#") && word)
+      .map((word) => word.substr(1));
     let data = {
       content,
       postedBy,
@@ -18,9 +19,8 @@ const addPost = async (req, res) => {
       };
     if (mediaURLs && mediaURLs.length > 0) data = { ...data, mediaURLs };
 
-    let post = new Post(data);
-
-    post = await post.save();
+    let post = await Post.create(data);
+    post = await post.populate("postedBy", "_id name profilePictureURL");
 
     res.json({ post });
   } catch (err) {
@@ -37,9 +37,10 @@ const updatePost = async (req, res) => {
     });
 
     if (isPostExists) {
-      const hashTags = content.split(" ").filter((word) => {
-        if (word.startsWith("#")) return word.slice(1);
-      });
+      const hashTags = content
+        .split(" ")
+        .filter((word) => word.startsWith("#") && word)
+        .map((word) => word.substr(1));
       let data = {
         content,
         postedBy,

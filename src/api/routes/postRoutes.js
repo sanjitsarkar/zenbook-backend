@@ -30,7 +30,7 @@ router.post("/comments/:commentId", auth, addReply);
 router.delete("/replies/:replyId", auth, removeReply);
 router.get("/comments/:commentId", auth, fetchAllReply);
 router.post("/", auth, addPost);
-router.get("/hashtag/:id", auth, fetchAllPostByHashTags);
+router.get("/hashtag/:hashtag", auth, fetchAllPostByHashTags);
 router.get("/sortBy=date", auth, sortAllPostByDate);
 router.delete("/:postId/:postedBy", auth, deletePost);
 router.get("/:postId", auth, fetchPost);

@@ -5,6 +5,7 @@ const postSchema = new Schema(
   {
     content: {
       type: String,
+      index: true,
     },
     likes: {
       type: [Schema.Types.ObjectId],
@@ -12,6 +13,7 @@ const postSchema = new Schema(
     },
     hashTags: {
       type: [String],
+      index: true,
     },
     comments: {
       type: [commentSchema.schema],
@@ -34,4 +36,5 @@ const postSchema = new Schema(
   },
   { timestamps: true }
 );
+postSchema.index({ content: "text", hashTags: "text" }, { sparse: true });
 module.exports = post = model("post", postSchema);
