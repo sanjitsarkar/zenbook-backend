@@ -88,7 +88,7 @@ const getFollowing = async (req, res) => {
   }
 };
 const searchFollowers = async (req, res) => {
-  let { search } = req.query;
+  let { search, skip } = req.query;
   const users = await User.find(
     {
       $text: {
@@ -100,7 +100,9 @@ const searchFollowers = async (req, res) => {
     { score: { $meta: "textScore" } }
   )
     .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
-    .select("-password -draftPosts -archivedPosts -bookmarkedPosts");
+    .select("-password -draftPosts -archivedPosts -bookmarkedPosts")
+    .limit(5)
+    .skip(skip);
   res.json({ users });
 };
 module.exports = {

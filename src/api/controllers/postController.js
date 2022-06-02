@@ -551,6 +551,7 @@ const sortAllPostByDate = async (req, res) => {
 const fetchAllPostByHashTags = async (req, res) => {
   const { hashtag } = req.params;
   const { skip } = req.query;
+
   try {
     const posts = await Post.find({
       isArchived: false,
