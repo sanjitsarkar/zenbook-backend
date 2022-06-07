@@ -99,7 +99,7 @@ const searchFollowers = async (req, res) => {
     },
     { score: { $meta: "textScore" } }
   )
-    .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+    .sort({ score: { $meta: "textScore" }, createdAt: -1 })
     .select("-password -draftPosts -archivedPosts -bookmarkedPosts")
     .limit(5)
     .skip(skip);

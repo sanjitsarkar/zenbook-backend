@@ -113,7 +113,7 @@ const fetchAllUserPost = async (req, res) => {
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
       )
-        .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -123,7 +123,7 @@ const fetchAllUserPost = async (req, res) => {
         isArchived: false,
         postedBy,
       })
-        .sort({ updatedAt: -1 })
+        .sort({ createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -335,14 +335,14 @@ const fetchAllPost = async (req, res) => {
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
       )
-        .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
         .skip(skip);
     else
       posts = await Post.find({ isArchived: false })
-        .sort({ updatedAt: -1 })
+        .sort({ createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -370,7 +370,7 @@ const fetchAllPostByUserId = async (req, res) => {
         { $text: { $search: search } },
         { score: { $meta: "textScore" } }
       )
-        .sort({ score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -380,7 +380,7 @@ const fetchAllPostByUserId = async (req, res) => {
         isArchived: false,
         postedBy: { $in: [postedBy, ...userInfo.following] },
       })
-        .sort({ updatedAt: -1 })
+        .sort({ createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -408,7 +408,7 @@ const fetchAllTrendingUserPost = async (req, res) => {
         },
         { score: { $meta: "textScore" } }
       )
-        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ likes: -1, score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -418,7 +418,7 @@ const fetchAllTrendingUserPost = async (req, res) => {
         isArchived: false,
         postedBy: { $in: [postedBy, ...userInfo.following] },
       })
-        .sort({ likes: -1, updatedAt: -1 })
+        .sort({ likes: -1, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -452,7 +452,7 @@ const sortAllUserPostByDate = async (req, res) => {
         },
         { score: { $meta: "textScore" } }
       )
-        .sort({ updatedAt: order, score: { $meta: "textScore" } })
+        .sort({ createdAt: order, score: { $meta: "textScore" } })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -462,7 +462,7 @@ const sortAllUserPostByDate = async (req, res) => {
         isArchived: false,
         postedBy: { $in: [postedBy, userInfo.following] },
       })
-        .sort({ updatedAt: order })
+        .sort({ createdAt: order })
         .populate("postedBy")
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
@@ -488,7 +488,7 @@ const fetchAllTrendingPost = async (req, res) => {
         },
         { score: { $meta: "textScore" } }
       )
-        .sort({ likes: -1, score: { $meta: "textScore" }, updatedAt: -1 })
+        .sort({ likes: -1, score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -497,7 +497,7 @@ const fetchAllTrendingPost = async (req, res) => {
       posts = await Post.find({
         isArchived: false,
       })
-        .sort({ likes: -1, updatedAt: -1 })
+        .sort({ likes: -1, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -527,7 +527,7 @@ const sortAllPostByDate = async (req, res) => {
         },
         { score: { $meta: "textScore" } }
       )
-        .sort({ updatedAt: order, score: { $meta: "textScore" } })
+        .sort({ createdAt: order, score: { $meta: "textScore" } })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -536,7 +536,7 @@ const sortAllPostByDate = async (req, res) => {
       posts = await Post.find({
         isArchived: false,
       })
-        .sort({ updatedAt: order })
+        .sort({ createdAt: order })
         .populate("postedBy", "_id name profilePictureURL")
         .populate("comments.commentedBy", "_id name profilePictureURL")
         .limit(5)
@@ -555,7 +555,7 @@ const fetchAllPostByHashTags = async (req, res) => {
       isArchived: false,
       hashTags: { $in: hashtag },
     })
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: -1 })
       .populate("postedBy", "_id name profilePictureURL")
       .populate("comments.commentedBy", "_id name profilePictureURL")
       .limit(5)
