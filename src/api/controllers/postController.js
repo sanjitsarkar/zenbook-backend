@@ -96,7 +96,6 @@ const fetchPost = async (req, res) => {
     const post = await Post.findById(postId)
       .populate("postedBy", "_id name profilePictureURL")
       .populate("comments.commentedBy", "_id name profilePictureURL");
-
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });

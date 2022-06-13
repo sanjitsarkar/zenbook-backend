@@ -12,8 +12,7 @@ const addComment = async (req, res) => {
     )
 
       .select("comments")
-      .populate("comments.commentedBy", "_id name profilePictureURL")
-      .limit(5);
+      .populate("comments.commentedBy", "_id name profilePictureURL");
     res.json({ comments });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
