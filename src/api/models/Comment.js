@@ -3,6 +3,9 @@ const replySchema = require("./Reply");
 
 const commentSchema = new Schema(
   {
+    postId: {
+      type: Schema.Types.ObjectId,
+    },
     comment: {
       type: String,
     },
@@ -10,7 +13,6 @@ const commentSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "user",
     },
-    replies: { type: [Schema.Types.ObjectId], ref: "reply" },
   },
   { timestamps: true }
 );

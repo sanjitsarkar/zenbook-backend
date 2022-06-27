@@ -3,6 +3,9 @@ const replySchema = new Schema({
   reply: {
     type: String,
   },
+  postId: {
+    type: String,
+  },
   commentId: {
     type: Schema.Types.ObjectId,
   },

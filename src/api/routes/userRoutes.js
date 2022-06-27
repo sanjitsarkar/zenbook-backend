@@ -23,6 +23,15 @@ const {
   getFollowers,
   searchFollowers,
 } = require("../controllers/authController");
+const {
+  fetchAllMessage,
+  sendMessage,
+  removeMessage,
+  fetchAllMessagesInfo,
+  fetchAllConversation,
+  fetchConversationInfo,
+  createConversation,
+} = require("../controllers/messageController");
 const router = express.Router();
 
 router.get("/", auth, searchFollowers);
@@ -46,5 +55,11 @@ router.delete("/:id/posts/draft/:postId", auth, removePostFromDraft);
 
 router.get("/:id/followers", auth, getFollowers);
 router.get("/:id/following", auth, getFollowing);
+router.post("/:id/messages", auth, sendMessage);
+router.get("/:id/conversations", auth, fetchAllConversation);
+router.post("/:id/conversations/:to", auth, createConversation);
+router.get("/:id/conversations/:from", auth, fetchConversationInfo);
+router.get("/:id/messages/:conversationId", auth, fetchAllMessage);
+router.delete("/:id/messages/:messageId", auth, removeMessage);
 
 module.exports = router;

@@ -15,9 +15,6 @@ const postSchema = new Schema(
       type: [String],
       index: true,
     },
-    comments: {
-      type: [commentSchema.schema],
-    },
     mediaURLs: {
       type: [mediaUrlSchema.schema],
     },
@@ -32,6 +29,10 @@ const postSchema = new Schema(
     isArchived: {
       type: Boolean,
       default: false,
+    },
+    commentCount: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

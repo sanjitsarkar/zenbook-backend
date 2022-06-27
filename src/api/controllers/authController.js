@@ -89,20 +89,30 @@ const getFollowing = async (req, res) => {
 };
 const searchFollowers = async (req, res) => {
   let { search, skip } = req.query;
-  const users = await User.find(
-    {
-      $text: {
-        $search: search,
-        $caseSensitive: false,
-        $diacriticSensitive: false,
+  let users;
+  if (search !== "undefined") {
+    users = await User.find(
+      {
+        $text: {
+          $search: search,
+          $caseSensitive: false,
+          $diacriticSensitive: false,
+        },
       },
-    },
-    { score: { $meta: "textScore" } }
-  )
-    .sort({ score: { $meta: "textScore" }, createdAt: -1 })
-    .select("-password -draftPosts -archivedPosts -bookmarkedPosts")
-    .limit(5)
-    .skip(skip);
+      { score: { $meta: "textScore" } }
+    )
+      .sort({ score: { $meta: "textScore" }, createdAt: -1 })
+      .select("-password -draftPosts -archivedPosts -bookmarkedPosts")
+      .limit(5)
+      .skip(skip);
+  } else {
+    const user = await User.findById(req.user.id);
+    users = await User.find({ _id: { $nin: [user._id, ...user.following] } })
+      .sort({ createdAt: -1 })
+      .select("-password -draftPosts -archivedPosts -bookmarkedPosts")
+      .limit(5)
+      .skip(skip);
+  }
   res.json({ users });
 };
 module.exports = {

@@ -1,4 +1,5 @@
-const { Post, User } = require("../models");
+const { Post, User, Reply } = require("../models");
+const Comment = require("../models/Comment");
 
 const addPost = async (req, res) => {
   try {
@@ -59,10 +60,7 @@ const updatePost = async (req, res) => {
         { _id: postId },
         { ...data, $pullAll: [deletedMediaURLs] },
         { new: true }
-      )
-        .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL");
-
+      ).populate("postedBy", "_id name profilePictureURL");
       res.json({ post });
     } else
       res
@@ -81,6 +79,18 @@ const deletePost = async (req, res) => {
     });
     if (isPostExists) {
       await Post.deleteOne({ _id: postId }, { new: true });
+      await Comment.deleteMany({ postId });
+      await Reply.deleteMany({ postId });
+      await User.updateMany(
+        {},
+        {
+          $pull: {
+            draftPosts: postId,
+            archivedPosts: postId,
+            bookmarkedPosts: postId,
+          },
+        }
+      );
       res.json({ postId });
     } else
       res
@@ -93,9 +103,10 @@ const deletePost = async (req, res) => {
 const fetchPost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const post = await Post.findById(postId)
-      .populate("postedBy", "_id name profilePictureURL")
-      .populate("comments.commentedBy", "_id name profilePictureURL");
+    const post = await Post.findById(postId).populate(
+      "postedBy",
+      "_id name profilePictureURL"
+    );
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -117,7 +128,7 @@ const fetchAllUserPost = async (req, res) => {
       )
         .sort({ score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     } else {
@@ -127,7 +138,7 @@ const fetchAllUserPost = async (req, res) => {
       })
         .sort({ createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     }
@@ -151,7 +162,7 @@ const fetchAllUserDraftPost = async (req, res) => {
             _id: postId,
           })
             .populate("postedBy", "_id name profilePictureURL")
-            .populate("comments.commentedBy", "_id name profilePictureURL")
+
             .limit(5)
             .skip(skip);
           return post[0];
@@ -172,10 +183,10 @@ const addPostToDraft = async (req, res) => {
       { $push: { draftPosts: postId } },
       { new: true }
     );
-    const post = await Post.findById(postId)
-      .populate("postedBy", "_id name profilePictureURL")
-      .populate("comments.commentedBy", "_id name profilePictureURL");
-
+    const post = await Post.findById(postId).populate(
+      "postedBy",
+      "_id name profilePictureURL"
+    );
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -210,7 +221,7 @@ const fetchAllUserArchivedPost = async (req, res) => {
             _id: postId,
           })
             .populate("postedBy", "_id name profilePictureURL")
-            .populate("comments.commentedBy", "_id name profilePictureURL")
+
             .limit(5)
             .skip(skip);
           return post[0];
@@ -241,10 +252,7 @@ const addPostToArchived = async (req, res) => {
         },
       },
       { new: true }
-    )
-      .populate("postedBy", "_id name profilePictureURL")
-      .populate("comments.commentedBy", "_id name profilePictureURL");
-
+    ).populate("postedBy", "_id name profilePictureURL");
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -281,10 +289,7 @@ const fetchAllUserBookmarkedPost = async (req, res) => {
           const post = await Post.find({
             isArchived: false,
             _id: postId,
-          })
-            .populate("postedBy", "_id name profilePictureURL")
-            .populate("comments.commentedBy", "_id name profilePictureURL");
-
+          }).populate("postedBy", "_id name profilePictureURL");
           return post[0];
         })
       );
@@ -303,9 +308,10 @@ const addPostToBookmarked = async (req, res) => {
       { $push: { bookmarkedPosts: postId } },
       { new: true }
     );
-    const post = await Post.findById(postId)
-      .populate("postedBy", "_id name profilePictureURL")
-      .populate("comments.commentedBy", "_id name profilePictureURL");
+    const post = await Post.findById(postId).populate(
+      "postedBy",
+      "_id name profilePictureURL"
+    );
     res.json({ post });
   } catch (err) {
     res.status(404).json({ errors: [err.message.split(",")] });
@@ -339,14 +345,14 @@ const fetchAllPost = async (req, res) => {
       )
         .sort({ score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     else
       posts = await Post.find({ isArchived: false })
         .sort({ createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     res.json({ posts });
@@ -374,7 +380,7 @@ const fetchAllPostByUserId = async (req, res) => {
       )
         .sort({ score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     else
@@ -384,7 +390,7 @@ const fetchAllPostByUserId = async (req, res) => {
       })
         .sort({ createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     res.json({ posts });
@@ -412,7 +418,7 @@ const fetchAllTrendingUserPost = async (req, res) => {
       )
         .sort({ likes: -1, score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     else
@@ -422,7 +428,7 @@ const fetchAllTrendingUserPost = async (req, res) => {
       })
         .sort({ likes: -1, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     res.json({ posts });
@@ -456,7 +462,7 @@ const sortAllUserPostByDate = async (req, res) => {
       )
         .sort({ createdAt: order, score: { $meta: "textScore" } })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     else
@@ -467,7 +473,7 @@ const sortAllUserPostByDate = async (req, res) => {
         .sort({ createdAt: order })
         .populate("postedBy")
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     res.json({ posts });
@@ -492,7 +498,7 @@ const fetchAllTrendingPost = async (req, res) => {
       )
         .sort({ likes: -1, score: { $meta: "textScore" }, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     else
@@ -501,7 +507,7 @@ const fetchAllTrendingPost = async (req, res) => {
       })
         .sort({ likes: -1, createdAt: -1 })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     res.json({ posts });
@@ -531,7 +537,7 @@ const sortAllPostByDate = async (req, res) => {
       )
         .sort({ createdAt: order, score: { $meta: "textScore" } })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     else
@@ -540,7 +546,7 @@ const sortAllPostByDate = async (req, res) => {
       })
         .sort({ createdAt: order })
         .populate("postedBy", "_id name profilePictureURL")
-        .populate("comments.commentedBy", "_id name profilePictureURL")
+
         .limit(5)
         .skip(skip);
     res.json({ posts });
@@ -559,7 +565,7 @@ const fetchAllPostByHashTags = async (req, res) => {
     })
       .sort({ createdAt: -1 })
       .populate("postedBy", "_id name profilePictureURL")
-      .populate("comments.commentedBy", "_id name profilePictureURL")
+
       .limit(5)
       .skip(skip);
     res.json({ posts });

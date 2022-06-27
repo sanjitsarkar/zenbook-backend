@@ -64,6 +64,10 @@ const userSchema = new Schema(
       type: [Schema.Types.ObjectId],
       ref: "user",
     },
+    messageCount: {
+      type: Number,
+      default: 0,
+    },
     followers: {
       type: [Schema.Types.ObjectId],
       ref: "user",
