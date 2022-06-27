@@ -5,7 +5,6 @@ require("dotenv").config();
 const connectMongo = require("./config/index.js");
 const { authRoutes, postRoutes, userRoutes } = require("./api/routes");
 const { auth } = require("./api/middlewares/");
-const { log } = require("console");
 const app = express();
 const http = require("http").Server(app);
 const io = require("socket.io")(http, {
