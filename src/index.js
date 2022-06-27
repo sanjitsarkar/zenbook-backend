@@ -5,6 +5,7 @@ require("dotenv").config();
 const connectMongo = require("./config/index.js");
 const { authRoutes, postRoutes, userRoutes } = require("./api/routes");
 const { auth } = require("./api/middlewares/");
+const { log } = require("console");
 const app = express();
 const http = require("http").Server(app);
 const io = require("socket.io")(http, {
@@ -36,7 +37,7 @@ const getUser = (userId) => {
 };
 io.on("connection", (socket) => {
   socket.on("online", (user) => {
-    addUser(user, socket.id);
+    addUser(user, socket?.id);
     io.emit(
       "getOnlineUsers",
       users.map((_user) => ({ ..._user.user }))
@@ -44,25 +45,25 @@ io.on("connection", (socket) => {
   });
   socket.on("sendMessage", ({ conversationId, from, to, message }) => {
     const user = getUser(to);
-    io.to(user.socketId).emit("getMessage", { conversationId, from, message });
+    io.to(user?.socketId).emit("getMessage", { conversationId, from, message });
   });
   socket.on("deleteMessage", ({ to, messageId }) => {
     const user = getUser(to);
-    io.to(user.socketId).emit("getDeleteMessage", {
+    io.to(user?.socketId).emit("getDeleteMessage", {
       messageId,
     });
   });
 
   socket.on("sendNotification", ({ type, sender, reciever, payload }) => {
     const user = getUser(reciever);
-    io.to(user.socketId).emit("getNotification", {
+    io.to(user?.socketId).emit("getNotification", {
       type,
       sender,
       payload,
     });
   });
   socket.on("disconnect", () => {
-    removeUser(socket.id);
+    removeUser(socket?.id);
     io.emit(
       "getOnlineUsers",
       users.map((_user) => ({ ..._user.user }))
