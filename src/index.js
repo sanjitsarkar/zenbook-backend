@@ -61,6 +61,21 @@ io.on("connection", (socket) => {
       payload,
     });
   });
+  socket.on("callUser", ({ from, to, signalData }) => {
+    const user = getUser(to);
+    io.to(user?.socketId).emit("callUser", {
+      from,
+      signalData,
+    });
+  });
+  socket.on("answerCall", ({ to, signalData }) => {
+    const user = getUser(to);
+    io.to(user?.socketId).emit("callAccepted", signalData);
+  });
+  socket.on("callEnded", ({ to }) => {
+    const user = getUser(to);
+    io.to(user?.socketId).emit("callEnded");
+  });
   socket.on("disconnect", () => {
     removeUser(socket?.id);
     io.emit(

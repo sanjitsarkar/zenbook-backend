@@ -83,6 +83,7 @@ const fetchAllComment = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(5)
       .skip(skip);
+      console.log();
     res.json({ comments });
   } catch (err) {
     console.log(err);
