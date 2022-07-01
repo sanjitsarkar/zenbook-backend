@@ -53,12 +53,9 @@ const updatePost = async (req, res) => {
         };
       if (mediaURLs && mediaURLs.length > 0) data = { ...data, mediaURLs };
       if (!mediaURLs) data = { ...data, mediaURLs: [] };
-      const deletedMediaURLs =
-        mediaURLs &&
-        isPostExists.mediaURLs.filter((media) => !mediaURLs.includes(media));
       const post = await Post.findOneAndUpdate(
         { _id: postId },
-        { ...data, $pullAll: [deletedMediaURLs] },
+        { ...data, mediaURLs },
         { new: true }
       ).populate("postedBy", "_id name profilePictureURL");
       res.json({ post });

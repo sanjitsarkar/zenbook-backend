@@ -107,7 +107,7 @@ const searchFollowers = async (req, res) => {
       .skip(skip);
   } else {
     const user = await User.findById(req.user.id);
-    users = await User.find({ _id: { $nin: [user._id, ...user.following] } })
+    users = await User.find({ _id: { $nin: [user?._id, ...user.following] } })
       .sort({ createdAt: -1 })
       .select("-password -draftPosts -archivedPosts -bookmarkedPosts")
       .limit(5)
